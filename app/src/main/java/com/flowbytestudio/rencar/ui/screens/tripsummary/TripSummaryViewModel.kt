@@ -5,7 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.cards.CardRepository
 import com.flowbytestudio.rencar.data.iyzico.IyzicoCardRequest
 import com.flowbytestudio.rencar.data.iyzico.IyzicoRepository
+import com.flowbytestudio.rencar.data.rentals.PaymentStatus
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalPaymentStatus
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.wallet.WalletRepository
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +41,7 @@ class TripSummaryViewModel(
                 .onSuccess { rental ->
                     _uiState.update { it.copy(isLoading = false, rental = rental) }
                     // Ödeme alınabilir durumdaysa cüzdan bakiyesini ve kayıtlı kartları getir.
-                    if (rental.status == "COMPLETED" && rental.paymentStatus == "UNPAID") {
+                    if (rental.rentalStatus == RentalStatus.COMPLETED && rental.rentalPaymentStatus == PaymentStatus.UNPAID) {
                         loadPaymentSources()
                     }
                 }

@@ -2,6 +2,7 @@ package com.flowbytestudio.rencar.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.data.auth.AuthConstants
 import com.flowbytestudio.rencar.data.auth.AuthRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,18 +25,18 @@ class LoginViewModel(
 
     fun onPhoneChange(phone: String) {
         val digitsOnly = phone.filter { it.isDigit() }
-        if (digitsOnly.length <= 10) {
+        if (digitsOnly.length <= AuthConstants.PHONE_DIGIT_COUNT) {
             _uiState.update { it.copy(phone = digitsOnly, error = null) }
         }
     }
 
     fun onCodeChange(code: String) {
         val digitsOnly = code.filter { it.isDigit() }
-        if (digitsOnly.length <= 6) {
+        if (digitsOnly.length <= AuthConstants.OTP_DIGIT_COUNT) {
             _uiState.update { it.copy(code = digitsOnly, error = null) }
-            // 6. hane girilir girilmez otomatik doğrula; buton yine de duruyor.
-            // Hatalı kodda kullanıcı düzeltince (uzunluk tekrar 6 olunca) yeniden tetiklenir.
-            if (digitsOnly.length == 6 && !_uiState.value.isLoading) {
+            // Son hane girilir girilmez otomatik doğrula; buton yine de duruyor.
+            // Hatalı kodda kullanıcı düzeltince (uzunluk tekrar tamamlanınca) yeniden tetiklenir.
+            if (digitsOnly.length == AuthConstants.OTP_DIGIT_COUNT && !_uiState.value.isLoading) {
                 onVerifyOtp()
             }
         }
@@ -43,8 +44,8 @@ class LoginViewModel(
 
     fun onRequestOtp() {
         val phoneDigits = _uiState.value.phone
-        if (phoneDigits.length < 10) {
-            _uiState.update { it.copy(error = "Lütfen 10 haneli telefon numaranızı girin.") }
+        if (phoneDigits.length < AuthConstants.PHONE_DIGIT_COUNT) {
+            _uiState.update { it.copy(error = "Lütfen ${AuthConstants.PHONE_DIGIT_COUNT} haneli telefon numaranızı girin.") }
             return
         }
 
@@ -58,11 +59,11 @@ class LoginViewModel(
                     .onSuccess {
                         _uiState.update {
                             it.copy(
-                                isLoading = false, 
+                                isLoading = false,
                                 step = LoginStep.OTP,
-                                timerSeconds = 60,
-                                canResendOtp = false
-                            ) 
+                                timerSeconds = AuthConstants.OTP_RESEND_COOLDOWN_SECONDS,
+                                canResendOtp = false,
+                            )
                         }
                         startTimer()
                     }
@@ -101,8 +102,8 @@ class LoginViewModel(
         val fullPhone = "+90$phoneDigits"
         val code = _uiState.value.code
         
-        if (code.length != 6) {
-            _uiState.update { it.copy(error = "6 haneli kodu eksiksiz girin.") }
+        if (code.length != AuthConstants.OTP_DIGIT_COUNT) {
+            _uiState.update { it.copy(error = "${AuthConstants.OTP_DIGIT_COUNT} haneli kodu eksiksiz girin.") }
             return
         }
 

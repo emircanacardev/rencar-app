@@ -3,7 +3,9 @@ package com.flowbytestudio.rencar.ui.screens.activerental
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.data.rentals.RideLocationClient
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -44,16 +46,16 @@ class ActiveRentalViewModel(
             _uiState.update { it.copy(isLoading = true, loadError = null) }
             rentalRepository.getRental(rentalId)
                 .onSuccess { rental ->
-                    when (rental.status) {
+                    when (rental.rentalStatus) {
                         // Zaten bitmiş/iptal: TripSummary'ye devret.
-                        "COMPLETED", "CANCELLED" -> {
+                        RentalStatus.COMPLETED, RentalStatus.CANCELLED -> {
                             _uiState.update {
                                 it.copy(isLoading = false, rental = rental, ended = true)
                             }
                             return@onSuccess
                         }
                         // Süre işlemiyor: sayaç/yoklama başlatma, yalnız bilgilendir.
-                        "PREPARING" -> {
+                        RentalStatus.PREPARING -> {
                             _uiState.update {
                                 it.copy(isLoading = false, rental = rental, isPreparing = true)
                             }

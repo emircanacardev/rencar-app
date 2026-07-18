@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.auth.AuthRepository
 import com.flowbytestudio.rencar.data.auth.AuthSession
+import com.flowbytestudio.rencar.data.auth.userRole
 import com.flowbytestudio.rencar.data.license.LicenseRepository
+import com.flowbytestudio.rencar.data.license.licenseStatusEnum
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +31,7 @@ class ProfileViewModel(
                         name = user?.fullName.orEmpty(),
                         phone = user?.phone.orEmpty(),
                         avatarUrl = user?.avatarUrl,
-                        role = user?.role,
+                        role = user?.userRole,
                         referralCode = user?.referralCode,
                     )
                 }
@@ -63,7 +65,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             licenseRepository.getStatus().onSuccess { status ->
                 _uiState.update {
-                    it.copy(licenseStatus = status.status, rejectReason = status.rejectReason)
+                    it.copy(licenseStatus = status.licenseStatusEnum, rejectReason = status.rejectReason)
                 }
             }
         }

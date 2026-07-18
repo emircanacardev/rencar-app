@@ -1,12 +1,14 @@
 package com.flowbytestudio.rencar.ui.screens.history
 
-enum class RentalStatus(val label: String) {
-    PREPARING("Hazırlanıyor"),
-    ACTIVE("Devam ediyor"),
-    COMPLETED("Tamamlandı"),
-    CANCELLED("İptal edildi"),
-    // Bilinmeyen durumlar için güvenli varsayılan; ham etiket ayrıca taşınır.
-    OTHER(""),
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+
+/** [RentalStatus]'un bu ekrandaki Türkçe görsel karşılığı (renk/etiket seçimi burada yapılır). */
+fun RentalStatus.displayLabel(): String = when (this) {
+    RentalStatus.PREPARING -> "Hazırlanıyor"
+    RentalStatus.ACTIVE -> "Devam ediyor"
+    RentalStatus.COMPLETED -> "Tamamlandı"
+    RentalStatus.CANCELLED -> "İptal edildi"
+    RentalStatus.UNKNOWN -> ""
 }
 
 data class RentalUiModel(

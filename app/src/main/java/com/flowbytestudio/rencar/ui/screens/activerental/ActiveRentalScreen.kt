@@ -44,6 +44,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.flowbytestudio.rencar.ui.common.MapStyles
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BgLight
@@ -69,29 +70,6 @@ import org.maplibre.geojson.Point
 
 private const val VEHICLE_SOURCE_ID = "active-rental-vehicle"
 private const val VEHICLE_ICON_ID = "active-rental-vehicle-icon"
-
-private const val OSM_RASTER_STYLE = """
-{
-  "version": 8,
-  "sources": {
-    "osm-tiles": {
-      "type": "raster",
-      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      "tileSize": 256,
-      "attribution": "&copy; OpenStreetMap contributors"
-    }
-  },
-  "layers": [
-    {
-      "id": "osm-tiles-layer",
-      "type": "raster",
-      "source": "osm-tiles",
-      "minzoom": 0,
-      "maxzoom": 19
-    }
-  ]
-}
-"""
 
 @Composable
 fun ActiveRentalScreen(
@@ -125,7 +103,7 @@ fun ActiveRentalScreen(
                     onCreate(null)
                     getMapAsync { map ->
                         mapLibreMap = map
-                        map.setStyle(Style.Builder().fromJson(OSM_RASTER_STYLE)) { style ->
+                        map.setStyle(Style.Builder().fromJson(MapStyles.OSM_LIGHT)) { style ->
                             style.addSource(GeoJsonSource(VEHICLE_SOURCE_ID))
                             style.addLayer(
                                 CircleLayer("vehicle-halo-layer", VEHICLE_SOURCE_ID).withProperties(

@@ -2,8 +2,13 @@ package com.flowbytestudio.rencar.ui.screens.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.data.rentals.PaymentStatus
 import com.flowbytestudio.rencar.data.rentals.RentalDto
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalPaymentStatus
+import com.flowbytestudio.rencar.data.rentals.rentalPlan
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -83,32 +88,19 @@ private fun formatDateTime(iso: String): String = runCatching {
     OffsetDateTime.parse(iso).format(displayDateFormatter)
 }.getOrDefault(iso)
 
-private fun planLabel(plan: String): String = when (plan) {
-    "PER_MINUTE" -> "Dakikalık"
-    "HOURLY" -> "Saatlik"
-    "DAILY" -> "Günlük"
-    else -> plan
-}
-
 private fun RentalDto.toUiModel(): RentalUiModel {
-    val statusEnum = when (status) {
-        "PREPARING" -> RentalStatus.PREPARING
-        "ACTIVE" -> RentalStatus.ACTIVE
-        "COMPLETED" -> RentalStatus.COMPLETED
-        "CANCELLED" -> RentalStatus.CANCELLED
-        else -> RentalStatus.OTHER
-    }
+    val statusEnum = rentalStatus
     return RentalUiModel(
         id = id,
         vehicleId = vehicleId,
         vehicleLabel = vehicle?.let { "${it.brand} ${it.model} · ${it.plate}" } ?: vehicleId,
-        planLabel = planLabel(plan),
+        planLabel = rentalPlan?.label ?: plan,
         dateLabel = startedAt?.let { formatDateTime(it) } ?: "—",
         priceLabel = totalPrice?.let { "₺${formatTl(it)}" } ?: "—",
         durationMinutes = durationMinutes,
         distanceKm = distanceKm,
         status = statusEnum,
-        statusLabel = if (statusEnum == RentalStatus.OTHER) status else statusEnum.label,
-        isUnpaidCompleted = status == "COMPLETED" && paymentStatus == "UNPAID",
+        statusLabel = statusEnum.displayLabel().ifEmpty { status },
+        isUnpaidCompleted = statusEnum == RentalStatus.COMPLETED && rentalPaymentStatus == PaymentStatus.UNPAID,
     )
 }

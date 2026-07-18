@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.rentals.RentalPhotosState
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.ui.common.ImageFiles
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +42,7 @@ class HandoverViewModel(
                 return@launch
             }
             // Uygulama başlamış bir yolculukla yeniden açıldıysa doğrudan aktif ekrana yönlendir.
-            if (rental.status == "ACTIVE") {
+            if (rental.rentalStatus == RentalStatus.ACTIVE) {
                 _uiState.update {
                     it.copy(isLoading = false, vehicle = rental.vehicle, startedRentalId = rentalId)
                 }

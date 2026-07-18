@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.cards.CardDto
 import com.flowbytestudio.rencar.data.cards.CardRepository
+import com.flowbytestudio.rencar.data.wallet.WalletLimits
 import com.flowbytestudio.rencar.data.wallet.WalletRepository
 import com.flowbytestudio.rencar.data.wallet.WalletResponse
 import com.flowbytestudio.rencar.data.wallet.WalletTransactionDto
@@ -75,8 +76,8 @@ class WalletViewModel(
 
     fun topup(amountText: String) {
         val amount = amountText.trim().replace(',', '.').toDoubleOrNull()
-        if (amount == null || amount < 10.0 || amount > 5000.0) {
-            _uiState.update { it.copy(topupError = "10-5000 TL aralığında olmalı") }
+        if (amount == null || amount < WalletLimits.MIN_TOPUP_AMOUNT || amount > WalletLimits.MAX_TOPUP_AMOUNT) {
+            _uiState.update { it.copy(topupError = topupRangeErrorMessage()) }
             return
         }
         viewModelScope.launch {
@@ -290,8 +291,14 @@ private fun Throwable?.toLoadErrorMessage(): String = when {
     else -> "Cüzdan yüklenemedi. Lütfen tekrar dene."
 }
 
+private fun topupRangeErrorMessage(): String {
+    val min = WalletLimits.MIN_TOPUP_AMOUNT.toInt()
+    val max = WalletLimits.MAX_TOPUP_AMOUNT.toInt()
+    return "$min-$max TL aralığında olmalı"
+}
+
 private fun Throwable.toTopupErrorMessage(): String = when {
-    this is HttpException && code() == 400 -> "10-5000 TL aralığında olmalı"
+    this is HttpException && code() == 400 -> topupRangeErrorMessage()
     this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
     else -> "Bakiye yüklenemedi. Lütfen tekrar dene."
 }

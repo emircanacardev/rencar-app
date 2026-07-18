@@ -73,6 +73,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.flowbytestudio.rencar.data.geocoding.GeocodingResult
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
+import com.flowbytestudio.rencar.data.vehicles.VehicleStatus
+import com.flowbytestudio.rencar.data.vehicles.vehicleStatus
+import com.flowbytestudio.rencar.ui.common.MapStyles
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.Danger
@@ -120,56 +123,6 @@ private val ME_MARKER_COLOR = android.graphics.Color.parseColor("#4285F4")
 private const val CLUSTER_MAX_ZOOM = 15.0
 private const val CLUSTER_RADIUS_DEGREES_AT_ZOOM0 = 40.0
 
-private const val OSM_RASTER_STYLE = """
-{
-  "version": 8,
-  "sources": {
-    "osm-tiles": {
-      "type": "raster",
-      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      "tileSize": 256,
-      "attribution": "&copy; OpenStreetMap contributors"
-    }
-  },
-  "layers": [
-    {
-      "id": "osm-tiles-layer",
-      "type": "raster",
-      "source": "osm-tiles",
-      "minzoom": 0,
-      "maxzoom": 19
-    }
-  ]
-}
-"""
-
-private const val DARK_RASTER_STYLE = """
-{
-  "version": 8,
-  "sources": {
-    "carto-dark-tiles": {
-      "type": "raster",
-      "tiles": ["https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"],
-      "tileSize": 256,
-      "attribution": "&copy; OpenStreetMap contributors &copy; CARTO"
-    }
-  },
-  "layers": [
-    {
-      "id": "carto-dark-tiles-layer",
-      "type": "raster",
-      "source": "carto-dark-tiles",
-      "minzoom": 0,
-      "maxzoom": 19,
-      "paint": {
-        "raster-brightness-min": 0.15,
-        "raster-brightness-max": 1.0,
-        "raster-contrast": -0.1
-      }
-    }
-  ]
-}
-"""
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -348,7 +301,7 @@ fun MapScreen(
             clusters.forEach { cluster ->
                 if (cluster.vehicles.size == 1) {
                     val vehicle = cluster.vehicles.first()
-                    val available = vehicle.status.equals("AVAILABLE", ignoreCase = true)
+                    val available = vehicle.vehicleStatus == VehicleStatus.AVAILABLE
                     // Marker balonu: varsa dakikalık fiyat, yoksa günlük.
                     val priceText = vehicle.pricePerMinute
                         ?.let { "₺${formatTl(it)}/dk" }
@@ -570,7 +523,7 @@ fun MapScreen(
             }
             
             val hasActiveRental = uiState.activeRental != null
-            val isVehicleAvailable = vehicle.status.equals("AVAILABLE", ignoreCase = true)
+            val isVehicleAvailable = vehicle.vehicleStatus == VehicleStatus.AVAILABLE
 
             VehicleDetailSheet(
                 vehicle = vehicle,
@@ -588,7 +541,7 @@ fun MapScreen(
 }
 
 private fun loadMapStyle(map: MapLibreMap, isDarkTheme: Boolean, onLoaded: (Style) -> Unit) {
-    val styleJson = if (isDarkTheme) DARK_RASTER_STYLE else OSM_RASTER_STYLE
+    val styleJson = if (isDarkTheme) MapStyles.CARTO_DARK else MapStyles.OSM_LIGHT
     map.setStyle(Style.Builder().fromJson(styleJson)) { style ->
         style.addSource(GeoJsonSource(ME_SOURCE_ID))
         style.addLayer(

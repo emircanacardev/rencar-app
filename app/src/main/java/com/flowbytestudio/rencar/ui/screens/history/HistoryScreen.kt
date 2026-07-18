@@ -45,6 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.Danger
@@ -293,7 +294,7 @@ private fun statusVisual(status: RentalStatus): Color = when (status) {
     RentalStatus.PREPARING -> WarningAmber
     RentalStatus.COMPLETED -> Success
     RentalStatus.CANCELLED -> Danger
-    RentalStatus.OTHER -> TextSecondary
+    RentalStatus.UNKNOWN -> TextSecondary
 }
 
 @Composable
@@ -326,7 +327,7 @@ private fun StatusDot(status: RentalStatus, modifier: Modifier = Modifier) {
                     .clip(CircleShape)
                     .background(Color.White),
             )
-            RentalStatus.OTHER -> Unit
+            RentalStatus.UNKNOWN -> Unit
         }
     }
 }

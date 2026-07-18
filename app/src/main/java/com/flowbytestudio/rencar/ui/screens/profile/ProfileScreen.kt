@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.flowbytestudio.rencar.data.license.LicenseStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BorderLight
@@ -320,13 +321,13 @@ private fun LicenseSection(
     onRefreshSessionClick: () -> Unit,
 ) {
     when (uiState.licenseStatus) {
-        "APPROVED" -> ApprovedLicenseCard(
+        LicenseStatus.APPROVED -> ApprovedLicenseCard(
             licenseClass = uiState.licenseClass,
             showRefresh = uiState.canRefreshSession,
             isRefreshing = uiState.isRefreshingSession,
             onRefreshSessionClick = onRefreshSessionClick,
         )
-        "UNDER_REVIEW" -> LicenseStatusCard(
+        LicenseStatus.UNDER_REVIEW -> LicenseStatusCard(
             icon = Icons.Outlined.HourglassEmpty,
             iconTint = WarningAmber,
             iconBg = WarningAmberLight,
@@ -336,7 +337,7 @@ private fun LicenseSection(
             badgeColor = WarningAmber,
             badgeBg = WarningAmberLight,
         )
-        "REJECTED" -> LicenseStatusCard(
+        LicenseStatus.REJECTED -> LicenseStatusCard(
             icon = Icons.Outlined.WarningAmber,
             iconTint = Danger,
             iconBg = DangerLight,
@@ -347,7 +348,7 @@ private fun LicenseSection(
             badgeBg = PrimaryLight,
             onClick = onLicenseActionClick,
         )
-        "NOT_SUBMITTED" -> LicenseStatusCard(
+        LicenseStatus.NOT_SUBMITTED -> LicenseStatusCard(
             icon = Icons.Outlined.Shield,
             iconTint = Primary,
             iconBg = PrimaryLight,
@@ -360,7 +361,7 @@ private fun LicenseSection(
         )
         // UNKNOWN (henüz yüklenmedi/hata) ve beklenmeyen durumlar: kart gizli kalır,
         // böylece durum bilinmeden yanıltıcı "doğrula" istemi gösterilmez.
-        else -> Unit
+        LicenseStatus.UNKNOWN -> Unit
     }
 }
 

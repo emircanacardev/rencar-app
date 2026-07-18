@@ -1,15 +1,9 @@
 package com.flowbytestudio.rencar.ui.screens.reservation
 
+import com.flowbytestudio.rencar.data.rentals.RentalPlan
 import com.flowbytestudio.rencar.data.reservations.ReservationResponse
 import com.flowbytestudio.rencar.data.vehicles.QuoteResponse
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
-
-// Ekrandaki plan seçimi -> API RentalPlan değeri eşlemesi.
-enum class RentalPlan(val apiValue: String) {
-    DAKIKALIK("PER_MINUTE"),
-    SAATLIK("HOURLY"),
-    GUNLUK("DAILY"),
-}
 
 // Rezervasyon ücretsiz tutma süresi (RESERVATION_TTL_MIN varsayılanı).
 const val FREE_RESERVATION_MINUTES = 15

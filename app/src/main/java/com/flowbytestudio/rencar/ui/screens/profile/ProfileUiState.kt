@@ -1,17 +1,18 @@
 package com.flowbytestudio.rencar.ui.screens.profile
 
+import com.flowbytestudio.rencar.data.auth.UserRole
+import com.flowbytestudio.rencar.data.license.LicenseStatus
+
 data class ProfileUiState(
     val name: String = "",
     val phone: String = "",
     val avatarUrl: String? = null,
-    // PENDING / CUSTOMER / ADMIN
-    val role: String? = null,
+    val role: UserRole? = null,
     // /auth/me ile üretilir; gelene kadar null.
     val referralCode: String? = null,
-    // UNKNOWN (henüz yüklenmedi/hata) / NOT_SUBMITTED / UNDER_REVIEW / APPROVED / REJECTED.
     // Varsayılan UNKNOWN: getStatus başarısız olursa onaylı kullanıcıya yanlışlıkla
     // "ehliyetini doğrula" gösterilmez; durum kartı bilinene kadar gizli kalır.
-    val licenseStatus: String = "UNKNOWN",
+    val licenseStatus: LicenseStatus = LicenseStatus.UNKNOWN,
     val rejectReason: String? = null,
     val licenseClass: String = "B sınıfı · geçerli",
     // Bu ayki yolculuk özeti (CUSTOMER olmayan kullanıcıda null kalır).
@@ -21,7 +22,7 @@ data class ProfileUiState(
 ) {
     // Ehliyet onayı sonrası CUSTOMER token'ı için oturum yenileme önerilir.
     val canRefreshSession: Boolean
-        get() = licenseStatus == "APPROVED" && role != null && role != "CUSTOMER"
+        get() = licenseStatus == LicenseStatus.APPROVED && role != null && role != UserRole.CUSTOMER
 }
 
 data class ProfileStats(

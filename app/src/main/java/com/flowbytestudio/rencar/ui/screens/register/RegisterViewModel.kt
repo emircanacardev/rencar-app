@@ -3,6 +3,7 @@ package com.flowbytestudio.rencar.ui.screens.register
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.data.auth.AuthConstants
 import com.flowbytestudio.rencar.data.auth.AuthRepository
 import com.flowbytestudio.rencar.data.network.backendMessage
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,10 @@ import java.io.IOException
 class RegisterViewModel(
     private val repository: AuthRepository = AuthRepository(),
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "RencarAuth"
+    }
 
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
@@ -34,7 +39,7 @@ class RegisterViewModel(
 
     fun onPhoneChange(value: String) {
         val digitsOnly = value.filter { it.isDigit() }
-        if (digitsOnly.length <= 10) {
+        if (digitsOnly.length <= AuthConstants.PHONE_DIGIT_COUNT) {
             _uiState.update { it.copy(phone = digitsOnly, error = null) }
         }
     }
@@ -46,12 +51,16 @@ class RegisterViewModel(
     fun onRegister() {
         val state = _uiState.value
 
-        if (state.fullName.isBlank() || state.email.isBlank() || state.phone.length != 10) {
+        if (state.fullName.isBlank() || state.email.isBlank() ||
+            state.phone.length != AuthConstants.PHONE_DIGIT_COUNT
+        ) {
             _uiState.update { it.copy(error = "Lütfen tüm alanları eksiksiz doldurun.") }
             return
         }
-        if (state.password.length < 6) {
-            _uiState.update { it.copy(error = "Parola en az 6 karakter olmalı.") }
+        if (state.password.length < AuthConstants.MIN_PASSWORD_LENGTH) {
+            _uiState.update {
+                it.copy(error = "Parola en az ${AuthConstants.MIN_PASSWORD_LENGTH} karakter olmalı.")
+            }
             return
         }
 
@@ -68,7 +77,7 @@ class RegisterViewModel(
                     referralCode = state.referralCode.ifBlank { null },
                 )
                     .onSuccess {
-                        Log.d("RencarAuth", "Register Success: phone=$fullPhone")
+                        Log.d(TAG, "Register Success")
                         _uiState.update { it.copy(isLoading = false, isRegistered = true) }
                     }
                     .onFailure { throwable ->
@@ -76,8 +85,8 @@ class RegisterViewModel(
                         val statusCode = httpException?.code()
                         val backendMessage = httpException?.backendMessage()
                         Log.e(
-                            "RencarAuth",
-                            "Register Failure: phone=$fullPhone, status=$statusCode, message=$backendMessage",
+                            TAG,
+                            "Register Failure: status=$statusCode, message=$backendMessage",
                             throwable,
                         )
 
@@ -90,7 +99,7 @@ class RegisterViewModel(
                         _uiState.update { it.copy(isLoading = false, error = errorMessage) }
                     }
             } catch (e: Exception) {
-                Log.e("RencarAuth", "Register Exception: phone=$fullPhone", e)
+                Log.e(TAG, "Register Exception", e)
                 _uiState.update { it.copy(isLoading = false, error = "Bağlantı hatası oluştu.") }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }

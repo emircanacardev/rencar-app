@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.geocoding.GeocodingRepository
 import com.flowbytestudio.rencar.data.geocoding.GeocodingResult
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.reservations.ReservationRepository
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
@@ -68,7 +70,7 @@ class MapViewModel(
             // status'ü burada da doğrulamak PREPARING bir kiralamanın (ör. foto akışından
             // geri tuşuyla çıkılmış) yanlışlıkla "Kiralama aktif" bannerına düşmesini engeller.
             val active = rentalRepository.getActiveRental().getOrNull()
-                ?.takeIf { it.status == "ACTIVE" }
+                ?.takeIf { it.rentalStatus == RentalStatus.ACTIVE }
             if (active != null) {
                 _uiState.update {
                     it.copy(
@@ -82,7 +84,7 @@ class MapViewModel(
             }
 
             val preparing = rentalRepository.getMyRentals().getOrNull()
-                ?.firstOrNull { it.status == "PREPARING" }
+                ?.firstOrNull { it.rentalStatus == RentalStatus.PREPARING }
             if (preparing != null) {
                 _uiState.update {
                     it.copy(

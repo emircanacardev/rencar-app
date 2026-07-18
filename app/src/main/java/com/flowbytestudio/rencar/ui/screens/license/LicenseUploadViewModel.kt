@@ -19,6 +19,10 @@ class LicenseUploadViewModel(
     private val repository: LicenseRepository = LicenseRepository(),
 ) : ViewModel() {
 
+    companion object {
+        private const val TAG = "RencarLicense"
+    }
+
     private val _uiState = MutableStateFlow(
         LicenseUploadUiState(selfieUrl = AuthSession.currentUser.value?.avatarUrl),
     )
@@ -64,6 +68,8 @@ class LicenseUploadViewModel(
         }
     }
 
+    // Context, çağrının anlık ihtiyacı için Composable'dan geçirilir; ViewModel
+    // tarafında saklanmaz (leak riski yok), yalnızca Uri -> dosya kopyalama işinde kullanılır.
     fun onSubmit(context: Context) {
         val state = _uiState.value
         val front = state.frontUri
@@ -81,14 +87,14 @@ class LicenseUploadViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmitting = true, error = null) }
             try {
-                repository.upload(context, front, back, selfie)
+                repository.upload(context.applicationContext, front, back, selfie)
                     .onSuccess {
-                        Log.d("RencarLicense", "Upload Success")
+                        Log.d(TAG, "Upload Success")
                         _uiState.update { it.copy(isSubmitting = false, isSubmitted = true) }
                     }
                     .onFailure { throwable ->
                         val statusCode = (throwable as? HttpException)?.code()
-                        Log.e("RencarLicense", "Upload Failure: status=$statusCode", throwable)
+                        Log.e(TAG, "Upload Failure: status=$statusCode", throwable)
 
                         val errorMessage = when {
                             throwable is IOException -> "Bağlantı hatası oluştu."
@@ -100,7 +106,7 @@ class LicenseUploadViewModel(
                         _uiState.update { it.copy(isSubmitting = false, error = errorMessage) }
                     }
             } catch (e: Exception) {
-                Log.e("RencarLicense", "Upload Exception", e)
+                Log.e(TAG, "Upload Exception", e)
                 _uiState.update { it.copy(isSubmitting = false, error = "Bağlantı hatası oluştu.") }
             } finally {
                 _uiState.update { it.copy(isSubmitting = false) }

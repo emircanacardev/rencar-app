@@ -39,15 +39,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
+import com.flowbytestudio.rencar.data.vehicles.VehicleStatus
+import com.flowbytestudio.rencar.data.vehicles.vehicleStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.BgLight
 import com.flowbytestudio.rencar.ui.theme.BorderLight
-import com.flowbytestudio.rencar.ui.theme.Danger
-import com.flowbytestudio.rencar.ui.theme.DangerLight
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
 import com.flowbytestudio.rencar.ui.theme.Success
-import com.flowbytestudio.rencar.ui.theme.SuccessLight
 import com.flowbytestudio.rencar.ui.theme.Surface
 import com.flowbytestudio.rencar.ui.theme.TextPrimary
 import com.flowbytestudio.rencar.ui.theme.TextSecondary
@@ -66,14 +65,16 @@ fun VehicleDetailSheet(
     onReserve: () -> Unit,
 ) {
     val typeColor = VehicleType.colorFor(vehicle.type)
-    val isAvailable = vehicle.status.equals("AVAILABLE", ignoreCase = true)
-    val (statusLabel, statusColor, statusBg) = when (vehicle.status.uppercase()) {
-        "AVAILABLE" -> Triple("MÜSAİT", Success, SuccessLight)
-        "RESERVED" -> Triple("REZERVE", Primary, PrimaryLight)
-        "RENTED" -> Triple("KİRADA", Danger, DangerLight)
-        "MAINTENANCE" -> Triple("BAKIMDA", TextSecondary, BgLight)
-        else -> Triple(vehicle.status, TextSecondary, BgLight)
+    val status = vehicle.vehicleStatus
+    val isAvailable = status == VehicleStatus.AVAILABLE
+    val statusLabel = when (status) {
+        VehicleStatus.AVAILABLE -> "MÜSAİT"
+        VehicleStatus.RESERVED -> "REZERVE"
+        VehicleStatus.RENTED -> "KİRADA"
+        VehicleStatus.MAINTENANCE -> "BAKIMDA"
+        VehicleStatus.UNKNOWN -> vehicle.status
     }
+    val (statusColor, statusBg) = status.colors().let { it.foreground to it.background }
     val segmentLabel = VehicleSegment.labelFor(vehicle.segment)
 
     ModalBottomSheet(

@@ -2,14 +2,29 @@ package com.flowbytestudio.rencar.ui.screens.register
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.PersonAddAlt
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -18,10 +33,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.data.auth.AuthConstants
 import com.flowbytestudio.rencar.ui.screens.login.AuthFooterText
 import com.flowbytestudio.rencar.ui.screens.login.PhoneNumberInput
 import com.flowbytestudio.rencar.ui.screens.login.PrimaryAuthButton
-import com.flowbytestudio.rencar.ui.theme.*
+import com.flowbytestudio.rencar.ui.theme.Background
+import com.flowbytestudio.rencar.ui.theme.BgLight
+import com.flowbytestudio.rencar.ui.theme.BorderColor
+import com.flowbytestudio.rencar.ui.theme.Danger
+import com.flowbytestudio.rencar.ui.theme.Primary
+import com.flowbytestudio.rencar.ui.theme.Surface as SurfaceColor
+import com.flowbytestudio.rencar.ui.theme.TextPrimary
+import com.flowbytestudio.rencar.ui.theme.TextSecondary
 
 @Composable
 fun RegisterScreen(
@@ -87,8 +110,8 @@ fun RegisterScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Surface,
-                    unfocusedContainerColor = Surface
+                    focusedContainerColor = SurfaceColor,
+                    unfocusedContainerColor = SurfaceColor
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -104,8 +127,8 @@ fun RegisterScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Surface,
-                    unfocusedContainerColor = Surface
+                    focusedContainerColor = SurfaceColor,
+                    unfocusedContainerColor = SurfaceColor
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -122,8 +145,8 @@ fun RegisterScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Surface,
-                    unfocusedContainerColor = Surface
+                    focusedContainerColor = SurfaceColor,
+                    unfocusedContainerColor = SurfaceColor
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -151,8 +174,8 @@ fun RegisterScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = Surface,
-                    unfocusedContainerColor = Surface
+                    focusedContainerColor = SurfaceColor,
+                    unfocusedContainerColor = SurfaceColor
                 )
             )
 
@@ -173,8 +196,8 @@ fun RegisterScreen(
                 isLoading = uiState.isLoading,
                 enabled = uiState.fullName.isNotBlank() &&
                     uiState.email.isNotBlank() &&
-                    uiState.password.length >= 6 &&
-                    uiState.phone.length == 10 &&
+                    uiState.password.length >= AuthConstants.MIN_PASSWORD_LENGTH &&
+                    uiState.phone.length == AuthConstants.PHONE_DIGIT_COUNT &&
                     !uiState.isLoading,
                 onClick = viewModel::onRegister
             )

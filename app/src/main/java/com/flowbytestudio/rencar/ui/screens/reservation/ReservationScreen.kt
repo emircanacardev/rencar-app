@@ -55,9 +55,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
+import com.flowbytestudio.rencar.data.rentals.RentalPlan
 import com.flowbytestudio.rencar.data.vehicles.QuoteResponse
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
+import com.flowbytestudio.rencar.data.vehicles.VehicleStatus
+import com.flowbytestudio.rencar.data.vehicles.vehicleStatus
+import com.flowbytestudio.rencar.ui.screens.map.colors
 import com.flowbytestudio.rencar.ui.common.formatTl
+import com.flowbytestudio.rencar.ui.screens.map.VehicleSegment
 import com.flowbytestudio.rencar.ui.screens.map.VehicleType
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BgLight
@@ -491,18 +496,20 @@ private fun BlockingReservationNotice(
 @Composable
 private fun VehicleSummaryCard(vehicle: VehicleDto) {
     val typeColor = VehicleType.colorFor(vehicle.type)
-    val (statusLabel, statusColor, statusBg) = when (vehicle.status.uppercase()) {
-        "AVAILABLE" -> Triple("Müsait", Success, SuccessLight)
-        "RESERVED" -> Triple("Rezerve", Primary, PrimaryLight)
-        "RENTED" -> Triple("Kirada", Danger, DangerLight)
-        "MAINTENANCE" -> Triple("Bakımda", TextSecondary, BgLight)
-        else -> Triple(vehicle.status, TextSecondary, BgLight)
+    val status = vehicle.vehicleStatus
+    val statusLabel = when (status) {
+        VehicleStatus.AVAILABLE -> "Müsait"
+        VehicleStatus.RESERVED -> "Rezerve"
+        VehicleStatus.RENTED -> "Kirada"
+        VehicleStatus.MAINTENANCE -> "Bakımda"
+        VehicleStatus.UNKNOWN -> vehicle.status
     }
+    val (statusColor, statusBg) = status.colors().let { it.foreground to it.background }
     val subtitle = listOfNotNull(
         vehicle.plate,
         vehicle.transmission ?: VehicleType.labelFor(vehicle.type),
         vehicle.seats?.let { "$it kişi" },
-        segmentLabel(vehicle.segment),
+        VehicleSegment.labelFor(vehicle.segment),
     ).joinToString(" · ")
 
     Surface(
@@ -847,14 +854,6 @@ private fun PriceRow(label: String, value: String, emphasize: Boolean = false) {
             color = if (emphasize) Primary else TextPrimary,
         )
     }
-}
-
-// Fiyat segmenti etiketi (karoseri tipi değil).
-private fun segmentLabel(segment: String?): String? = when (segment?.uppercase()) {
-    "ECONOMY" -> "Ekonomik"
-    "COMFORT" -> "Konfor"
-    "SUV" -> "SUV"
-    else -> null
 }
 
 // remainingSeconds -> mm:ss

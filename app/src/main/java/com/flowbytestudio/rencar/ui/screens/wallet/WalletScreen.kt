@@ -64,6 +64,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.data.wallet.WalletLimits
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BgLight
@@ -634,7 +635,7 @@ private fun TopupSheet(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "10-5000 TL aralığında yükleme yapabilirsin.",
+                text = "${WalletLimits.MIN_TOPUP_AMOUNT.toInt()}-${WalletLimits.MAX_TOPUP_AMOUNT.toInt()} TL aralığında yükleme yapabilirsin.",
                 fontSize = 13.5.sp,
                 color = TextSecondary,
             )
@@ -660,7 +661,7 @@ private fun TopupSheet(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf(100, 250, 500).forEach { chip ->
+                WalletLimits.QUICK_TOPUP_AMOUNTS.forEach { chip ->
                     AmountChip(
                         label = "₺$chip",
                         onClick = { amount = chip.toString() },

@@ -2,10 +2,15 @@ package com.flowbytestudio.rencar.ui.screens.reservation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.data.rentals.RentalPlan
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.reservations.ReservationRepository
 import com.flowbytestudio.rencar.data.reservations.ReservationResponse
+import com.flowbytestudio.rencar.data.reservations.ReservationStatus
 import com.flowbytestudio.rencar.data.reservations.ReservationVehicleSummary
+import com.flowbytestudio.rencar.data.reservations.reservationStatus
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
 import java.text.SimpleDateFormat
@@ -50,7 +55,7 @@ class ReservationViewModel(
             // (busy araç yalnız aktif KİRALAMA sahibine görünür). Bu yüzden aracı
             // önce çekip 404'te düşmek, rezervasyon devralmayı imkânsız kılıyordu.
             val active = reservationRepository.getActiveReservation().getOrNull()
-                ?.takeIf { it.status == "ACTIVE" }
+                ?.takeIf { it.reservationStatus == ReservationStatus.ACTIVE }
 
             when {
                 active != null && active.vehicleId == vehicleId -> {
@@ -225,7 +230,7 @@ class ReservationViewModel(
                 .onSuccess { rental ->
                     stopTicker()
                     // PER_MINUTE/HOURLY -> PREPARING (foto akışı); DAILY -> ACTIVE.
-                    if (rental.status == "PREPARING") {
+                    if (rental.rentalStatus == RentalStatus.PREPARING) {
                         _uiState.update {
                             it.copy(isUnlocking = false, navigateToHandoverRentalId = rental.id)
                         }

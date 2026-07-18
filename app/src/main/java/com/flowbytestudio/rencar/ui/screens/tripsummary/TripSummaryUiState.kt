@@ -2,10 +2,28 @@ package com.flowbytestudio.rencar.ui.screens.tripsummary
 
 import com.flowbytestudio.rencar.data.cards.CardDto
 import com.flowbytestudio.rencar.data.rentals.PayRentalResponse
+import com.flowbytestudio.rencar.data.rentals.PaymentStatus
 import com.flowbytestudio.rencar.data.rentals.RentalDto
+import com.flowbytestudio.rencar.data.rentals.RentalStatus
+import com.flowbytestudio.rencar.data.rentals.rentalPaymentStatus
+import com.flowbytestudio.rencar.data.rentals.rentalStatus
 
 /** Fatura ekranındaki ödeme yöntemi seçimi. API'ye WALLET/CARD/IYZICO olarak gider. */
-enum class PaymentMethodOption { WALLET, CARD, IYZICO }
+enum class PaymentMethodOption {
+    WALLET, CARD, IYZICO;
+
+    companion object {
+        fun from(raw: String?): PaymentMethodOption? = entries.firstOrNull { it.name == raw }
+    }
+}
+
+/** Makbuzda/menüde gösterilen Türkçe etiket. */
+fun PaymentMethodOption?.displayLabel(): String = when (this) {
+    PaymentMethodOption.WALLET -> "Cüzdan"
+    PaymentMethodOption.CARD -> "Kart"
+    PaymentMethodOption.IYZICO -> "İyzico"
+    null -> "—"
+}
 
 /** İyzico seçilince kendi içindeki tahsilat yöntemi. */
 enum class IyzicoSubMethod {
@@ -65,13 +83,13 @@ data class TripSummaryUiState(
 
     /** Ödeme yapıldı mı? (bu oturumda ödendiyse ya da yüklenişte zaten PAID ise) */
     val isPaid: Boolean
-        get() = receipt != null || rental?.paymentStatus == "PAID"
+        get() = receipt != null || rental?.rentalPaymentStatus == PaymentStatus.PAID
 
     /** Ödeme bölümü gösterilsin mi? */
     val isPayable: Boolean
         get() = receipt == null &&
-            rental?.status == "COMPLETED" &&
-            rental.paymentStatus == "UNPAID"
+            rental?.rentalStatus == RentalStatus.COMPLETED &&
+            rental.rentalPaymentStatus == PaymentStatus.UNPAID
 
     /** Ödenecek tutar (kilitli toplam; indirim sunucuda uygulanır). */
     val payableAmount: Double?

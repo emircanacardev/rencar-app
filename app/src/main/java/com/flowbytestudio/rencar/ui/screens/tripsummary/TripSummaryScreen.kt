@@ -1,5 +1,8 @@
 package com.flowbytestudio.rencar.ui.screens.tripsummary
 
+import android.graphics.Bitmap
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -42,8 +46,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -60,7 +68,9 @@ import com.flowbytestudio.rencar.ui.theme.SuccessLight
 import com.flowbytestudio.rencar.ui.theme.Surface
 import com.flowbytestudio.rencar.ui.theme.TextPrimary
 import com.flowbytestudio.rencar.ui.theme.TextSecondary
+import java.net.URI
 import java.util.Locale
+import org.json.JSONTokener
 
 @Composable
 fun TripSummaryScreen(
@@ -628,7 +638,7 @@ private fun PaidReceiptCard(uiState: TripSummaryUiState) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = methodLabel(method),
+                    text = PaymentMethodOption.from(method).displayLabel(),
                     fontSize = 13.sp,
                     color = TextSecondary,
                 )
@@ -680,13 +690,6 @@ private fun PaidReceiptCard(uiState: TripSummaryUiState) {
     }
 }
 
-private fun methodLabel(method: String?): String = when (method) {
-    "WALLET" -> "Cüzdan"
-    "CARD" -> "Kart"
-    "IYZICO" -> "İyzico"
-    else -> "—"
-}
-
 private fun brandLabel(brand: String): String = when (brand.uppercase()) {
     "VISA" -> "Visa"
     "MASTERCARD" -> "Mastercard"
@@ -726,9 +729,9 @@ private fun IyzicoCheckoutDialog(
     onReturnedToBackend: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    androidx.compose.ui.window.Dialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Column(modifier = Modifier.fillMaxSize().background(Surface)) {
             Row(
@@ -753,20 +756,20 @@ private fun IyzicoCheckoutDialog(
             }
             HorizontalDivider(color = Background, thickness = 1.dp)
 
-            androidx.compose.ui.viewinterop.AndroidView(
+            AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { context ->
-                    android.webkit.WebView(context).apply {
+                    WebView(context).apply {
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        webViewClient = object : android.webkit.WebViewClient() {
+                        webViewClient = object : WebViewClient() {
                             override fun onPageStarted(
-                                view: android.webkit.WebView?,
+                                view: WebView?,
                                 loadedUrl: String?,
-                                favicon: android.graphics.Bitmap?,
+                                favicon: Bitmap?,
                             ) {
                                 super.onPageStarted(view, loadedUrl, favicon)
-                                val host = loadedUrl?.let { runCatching { java.net.URI(it).host }.getOrNull() }
+                                val host = loadedUrl?.let { runCatching { URI(it).host }.getOrNull() }
                                 if (host == BACKEND_HOST) {
                                     onReturnedToBackend()
                                 }
@@ -875,8 +878,8 @@ private fun IyzicoCardForm(
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Kart numarası") },
             singleLine = true,
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
             ),
             shape = RoundedCornerShape(14.dp),
             colors = iyzicoFieldColors(),
@@ -890,8 +893,8 @@ private fun IyzicoCardForm(
                 label = { Text("Ay") },
                 placeholder = { Text("AA") },
                 singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                 ),
                 shape = RoundedCornerShape(14.dp),
                 colors = iyzicoFieldColors(),
@@ -903,8 +906,8 @@ private fun IyzicoCardForm(
                 label = { Text("Yıl") },
                 placeholder = { Text("YYYY") },
                 singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                 ),
                 shape = RoundedCornerShape(14.dp),
                 colors = iyzicoFieldColors(),
@@ -915,8 +918,8 @@ private fun IyzicoCardForm(
                 modifier = Modifier.weight(1f),
                 label = { Text("CVC") },
                 singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
                 ),
                 shape = RoundedCornerShape(14.dp),
                 colors = iyzicoFieldColors(),
@@ -975,9 +978,9 @@ private fun Iyzico3dsDialog(
     onReturnedToBackend: (pageHtml: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    androidx.compose.ui.window.Dialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Column(modifier = Modifier.fillMaxSize().background(Surface)) {
             Row(
@@ -1002,23 +1005,23 @@ private fun Iyzico3dsDialog(
             }
             HorizontalDivider(color = Background, thickness = 1.dp)
 
-            androidx.compose.ui.viewinterop.AndroidView(
+            AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { context ->
-                    android.webkit.WebView(context).apply {
+                    WebView(context).apply {
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        webViewClient = object : android.webkit.WebViewClient() {
-                            override fun onPageFinished(view: android.webkit.WebView?, loadedUrl: String?) {
+                        webViewClient = object : WebViewClient() {
+                            override fun onPageFinished(view: WebView?, loadedUrl: String?) {
                                 super.onPageFinished(view, loadedUrl)
-                                val host = loadedUrl?.let { runCatching { java.net.URI(it).host }.getOrNull() }
+                                val host = loadedUrl?.let { runCatching { URI(it).host }.getOrNull() }
                                 if (host == BACKEND_HOST) {
                                     view?.evaluateJavascript(
                                         "document.documentElement.outerHTML",
                                     ) { rawHtml ->
                                         // evaluateJavascript sonucu JSON-string olarak gelir (kaçışlı); çöz.
                                         val decoded = runCatching {
-                                            org.json.JSONTokener(rawHtml).nextValue() as String
+                                            JSONTokener(rawHtml).nextValue() as String
                                         }.getOrDefault(rawHtml.orEmpty())
                                         onReturnedToBackend(decoded)
                                     }

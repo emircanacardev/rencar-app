@@ -4,6 +4,8 @@ import com.flowbytestudio.rencar.data.geocoding.GeocodingResult
 import com.flowbytestudio.rencar.data.rentals.RentalDto
 import com.flowbytestudio.rencar.data.reservations.ReservationResponse
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
+import com.flowbytestudio.rencar.data.vehicles.VehicleStatus
+import com.flowbytestudio.rencar.data.vehicles.vehicleStatus
 
 data class MapUiState(
     val isLoading: Boolean = true,
@@ -31,7 +33,7 @@ data class MapUiState(
 
     // Sayaç ve "en yakın araç" yalnız MÜSAİT araçları dikkate alır.
     val availableFilteredVehicles: List<VehicleDto>
-        get() = filteredVehicles.filter { it.status.equals("AVAILABLE", ignoreCase = true) }
+        get() = filteredVehicles.filter { it.vehicleStatus == VehicleStatus.AVAILABLE }
 
     val availableTypes: List<String>
         get() = vehicles.map { it.type }.distinct()
