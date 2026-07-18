@@ -1,4 +1,4 @@
-# Rencar — Kullanım Bazlı Araç Kiralama
+# Rencar — Araç Kiralama
 
 *Türkçe | [English](README.en.md)*
 
