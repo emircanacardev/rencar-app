@@ -62,7 +62,16 @@ fun AppNavGraph(
                 onNavigateToSettings = { navController.navigate(SettingsRoute) },
                 onNavigateToLicenseUpload = { navController.navigate(LicenseUploadRoute) },
                 onNavigateToReferral = { navController.navigate(ReferralRoute) },
-                onNavigateToPaymentMethods = { navController.navigate(WalletRoute) },
+                onNavigateToPaymentMethods = {
+                    // Bottom nav'ın kendi geçiş deseniyle aynı: düz navigate() kullanılırsa
+                    // Cüzdan sekmesinin bottom nav tarafından saklanan backstack durumuyla
+                    // çakışıp geri dönüşte takılı kalmasına yol açıyordu.
+                    navController.navigate(WalletRoute) {
+                        popUpTo(MapRoute) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
             )
         }
         composable<SettingsRoute> {
