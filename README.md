@@ -11,7 +11,7 @@ Bu depo, uygulamanın **Android (Kotlin + Jetpack Compose) istemci** tarafını 
 ## İçindekiler
 
 - [Kullanıcı Akışı](#kullanıcı-akışı)
-- [Özellikler (Batch Bazlı)](#özellikler-batch-bazlı)
+- [Özellikler](#özellikler)
   - [1. Kimlik Doğrulama, Onboarding & Oturum Kalıcılığı](#1-kimlik-doğrulama-onboarding--oturum-kalıcılığı)
   - [2. Ehliyet Doğrulama](#2-ehliyet-doğrulama)
   - [3. Araç Keşfi & Rezervasyon](#3-araç-keşfi--rezervasyon)
@@ -44,16 +44,16 @@ Splash (kayıtlı oturum doğrulanana kadar bekler)
 
 Kayıtlı bir oturum varsa splash ekranı arka planda token'ı doğrulayıp kullanıcıyı doğrudan Harita ekranına yönlendirir; onboarding ve login tekrar gösterilmez.
 
-## Özellikler (Batch Bazlı)
+## Özellikler
 
-İnceleme ve test kolaylığı için özellikler, uygulamadaki gerçek akış sırasına göre 6 batch'e bölünmüştür.
+İnceleme ve test kolaylığı için özellikler, uygulamadaki gerçek akış sırasına göre 6 bölüme ayrılmıştır.
 
 ### 1. Kimlik Doğrulama, Onboarding & Oturum Kalıcılığı
-- **Onboarding** — 3 sayfalık kaydırmalı tanıtım, sayfa göstergesi, geri tuşuyla önceki sayfaya dönüş; yalnız ilk açılışta gösterilir (`OnboardingPreferences`, DataStore ile kalıcı). `debug` derlemede `BuildConfig.ALWAYS_SHOW_ONBOARDING` bayrağıyla her açılışta tekrar gösterilir (bkz. [Yapılandırma](#yapılandırma)).
+- **Onboarding** — 3 sayfalık kaydırmalı tanıtım, sayfa göstergesi, geri tuşuyla önceki sayfaya dönüş; yalnız ilk açılışta gösterilir (`OnboardingPreferences`, DataStore ile kalıcı).
 - **Şifresiz giriş (OTP)** — telefon numarasıyla giriş (`+90` ön eki otomatik eklenir), 6 haneli SMS doğrulama kodu, 60 saniyelik "tekrar gönder" sayacı (`AuthConstants`); kod tamamlanır tamamlanmaz otomatik doğrulama tetiklenir.
 - **Kayıt** — ad soyad, e-posta, parola (min. 6 karakter), telefon ve isteğe bağlı **referans kodu**; kayıt olan kullanıcı `PENDING` rolüyle anında oturum açar.
 - **Kalıcı oturum (Splash + SessionManager)** — `SessionManager` uygulama açılışında kayıtlı access/refresh token çiftini `TokenStorage`'dan (DataStore) geri yükler ve 5 saniyelik zaman aşımıyla arka planda doğrular; bu süre boyunca `core-splashscreen` ekranı ekranda tutulur (`setKeepOnScreenCondition`), böylece oturumu açık bir kullanıcı hiçbir zaman login ekranını görmez. Eşzamanlı 401'lerde token yenileme `Mutex` ile serileştirilir — aksi halde backend'in refresh-token rotasyon kuralı, aynı anda gelen ikinci yenileme isteğini "çalınmış token" sayıp tüm oturum zincirini iptal eder. `AuthSession`, access/refresh çiftini tek parça (`TokenPair`) olarak tutup diske yazımı ayrı, tek iş parçacıklı bir kuyrukta sıraya koyar; böylece paralel yazımlar birbirinin üzerine yazmaz.
-- **Token rotasyonu** — refresh token her kullanımda yenilenir; eski token tekrar kullanılırsa oturum zinciri güvenlik gereği iptal edilir. Ehliyet onayı sonrası yeniden giriş yapmadan `refreshSession()` ile `CUSTOMER` token'ı alınabilir (bkz. Batch 6 — Profil).
+- **Token rotasyonu** — refresh token her kullanımda yenilenir; eski token tekrar kullanılırsa oturum zinciri güvenlik gereği iptal edilir. Ehliyet onayı sonrası yeniden giriş yapmadan `refreshSession()` ile `CUSTOMER` token'ı alınabilir (bkz. Bölüm 6 — Profil).
 - Kayıt sonrası kullanıcı doğrudan **Ehliyet Yükleme** ekranına yönlendirilir (`AuthSession.justRegistered`).
 - İlgili dosyalar: `ui/screens/onboarding/`, `ui/screens/login/`, `ui/screens/register/`, `data/auth/`
 
@@ -105,58 +105,56 @@ Kayıtlı bir oturum varsa splash ekranı arka planda token'ı doğrulayıp kull
 
 ## Ekran Görüntüleri
 
-> Görselleri [docs/screenshots/](docs/screenshots/) klasörüne aşağıdaki dosya adlarıyla eklemen yeterli — bu tablo otomatik olarak dolacak, README'de başka değişiklik gerekmez. Her ekranın koyu (varsayılan dosya adı) ve açık (`_light` son ekli) tema karşılığı ayrı ayrı gösterilir. Tablolar yukarıdaki batch sırasına göre gruplanmıştır.
-
 ### Açılış
 
 | Splash |
 |---|
-| ![Splash](docs/screenshots/splash.png) |
+| <img src="docs/screenshots/splash.png" width="220"> |
 
-### Batch 1 — Kimlik Doğrulama, Onboarding & Oturum Kalıcılığı
-
-| Ekran | Koyu Tema | Açık Tema |
-|---|---|---|
-| Onboarding | ![Onboarding](docs/screenshots/onboarding.png) | ![Onboarding Light](docs/screenshots/onboarding_light.png) |
-| Giriş / OTP | ![Login](docs/screenshots/login.png) | ![Login Light](docs/screenshots/login_light.png) |
-| Kayıt | ![Register](docs/screenshots/register.png) | ![Register Light](docs/screenshots/register_light.png) |
-
-### Batch 2 — Ehliyet Doğrulama
+### Bölüm 1 — Kimlik Doğrulama, Onboarding & Oturum Kalıcılığı
 
 | Ekran | Koyu Tema | Açık Tema |
 |---|---|---|
-| Ehliyet Yükleme | ![License](docs/screenshots/license.png) | ![License Light](docs/screenshots/license_light.png) |
+| Onboarding | <img src="docs/screenshots/onboarding.png" width="220"> | <img src="docs/screenshots/onboarding_light.png" width="220"> |
+| Giriş / OTP | <img src="docs/screenshots/login.png" width="220"> | <img src="docs/screenshots/login_light.png" width="220"> |
+| Kayıt | <img src="docs/screenshots/register.png" width="220"> | <img src="docs/screenshots/register_light.png" width="220"> |
 
-### Batch 3 — Araç Keşfi & Rezervasyon
-
-| Ekran | Koyu Tema | Açık Tema |
-|---|---|---|
-| Harita (Ana Sayfa) | ![Homepage](docs/screenshots/homepage.png) | ![Homepage Light](docs/screenshots/homepage_light.png) |
-| Araç Detay | ![Vehicle Detail](docs/screenshots/vehicle_detail.png) | ![Vehicle Detail Light](docs/screenshots/vehicle_detail_light.png) |
-| Rezervasyon | ![Reservation](docs/screenshots/reservation.png) | ![Reservation Light](docs/screenshots/reservation_light.png) |
-
-### Batch 4 — Teslim Alma & Aktif Yolculuk
+### Bölüm 2 — Ehliyet Doğrulama
 
 | Ekran | Koyu Tema | Açık Tema |
 |---|---|---|
-| Teslim Alma (4 Yön Foto) | ![Handover](docs/screenshots/handover.png) | ![Handover Light](docs/screenshots/handover_light.png) |
-| Aktif Yolculuk | ![Active Rental](docs/screenshots/active_rental.png) | ![Active Rental Light](docs/screenshots/active_rental_light.png) |
+| Ehliyet Yükleme | <img src="docs/screenshots/license.png" width="220"> | <img src="docs/screenshots/license_light.png" width="220"> |
 
-### Batch 5 — Ödeme & Cüzdan
-
-| Ekran | Koyu Tema | Açık Tema |
-|---|---|---|
-| Yolculuk Özeti / Ödeme | ![Trip Summary](docs/screenshots/trip_summary.png) | ![Trip Summary Light](docs/screenshots/trip_summary_light.png) |
-| Cüzdan | ![Wallet](docs/screenshots/wallet.png) | ![Wallet Light](docs/screenshots/wallet_light.png) |
-
-### Batch 6 — Profil, Geçmiş, Referans & Ayarlar
+### Bölüm 3 — Araç Keşfi & Rezervasyon
 
 | Ekran | Koyu Tema | Açık Tema |
 |---|---|---|
-| Geçmiş | ![History](docs/screenshots/history.png) | ![History Light](docs/screenshots/history_light.png) |
-| Profil | ![Profile](docs/screenshots/profile.png) | ![Profile Light](docs/screenshots/profile_light.png) |
-| Referans | ![Referral](docs/screenshots/referral.png) | ![Referral Light](docs/screenshots/referral_light.png) |
-| Ayarlar | ![Settings](docs/screenshots/settings.png) | ![Settings Light](docs/screenshots/settings_light.png) |
+| Harita (Ana Sayfa) | <img src="docs/screenshots/homepage.png" width="220"> | <img src="docs/screenshots/homepage_light.png" width="220"> |
+| Araç Detay | <img src="docs/screenshots/vehicle_detail.png" width="220"> | <img src="docs/screenshots/vehicle_detail_light.png" width="220"> |
+| Rezervasyon | <img src="docs/screenshots/reservation.png" width="220"> | <img src="docs/screenshots/reservation_light.png" width="220"> |
+
+### Bölüm 4 — Teslim Alma & Aktif Yolculuk
+
+| Ekran | Koyu Tema | Açık Tema |
+|---|---|---|
+| Teslim Alma (4 Yön Foto) | <img src="docs/screenshots/handover.png" width="220"> | <img src="docs/screenshots/handover_light.png" width="220"> |
+| Aktif Yolculuk | <img src="docs/screenshots/active_rental.png" width="220"> | <img src="docs/screenshots/active_rental_light.png" width="220"> |
+
+### Bölüm 5 — Ödeme & Cüzdan
+
+| Ekran | Koyu Tema | Açık Tema |
+|---|---|---|
+| Yolculuk Özeti / Ödeme | <img src="docs/screenshots/trip_summary.png" width="220"> | <img src="docs/screenshots/trip_summary_light.png" width="220"> |
+| Cüzdan | <img src="docs/screenshots/wallet.png" width="220"> | <img src="docs/screenshots/wallet_light.png" width="220"> |
+
+### Bölüm 6 — Profil, Geçmiş, Referans & Ayarlar
+
+| Ekran | Koyu Tema | Açık Tema |
+|---|---|---|
+| Geçmiş | <img src="docs/screenshots/history.png" width="220"> | <img src="docs/screenshots/history_light.png" width="220"> |
+| Profil | <img src="docs/screenshots/profile.png" width="220"> | <img src="docs/screenshots/profile_light.png" width="220"> |
+| Referans | <img src="docs/screenshots/referral.png" width="220"> | <img src="docs/screenshots/referral_light.png" width="220"> |
+| Ayarlar | <img src="docs/screenshots/settings.png" width="220"> | <img src="docs/screenshots/settings_light.png" width="220"> |
 
 ## Mimari ve Teknoloji Yığını
 
@@ -255,21 +253,21 @@ app/src/main/java/com/flowbytestudio/rencar/
 │   │   ├── MapStyles.kt      # MapLibre açık/koyu raster stil JSON'ları
 │   │   └── Money.kt          # TL biçimlendirme (₺ ile)
 │   ├── screens/
-│   │   ├── activerental/     # ActiveRentalScreen/UiState/ViewModel — Batch 4
-│   │   ├── handover/         # HandoverScreen/UiState/ViewModel — Batch 4
-│   │   ├── history/          # HistoryScreen/UiState/ViewModel/RentalUiModel — Batch 6
-│   │   ├── license/          # LicenseUploadScreen/UiState/ViewModel (3 adım + selfie) — Batch 2
-│   │   ├── login/            # LoginScreen/UiState/ViewModel — Batch 1
+│   │   ├── activerental/     # ActiveRentalScreen/UiState/ViewModel — Bölüm 4
+│   │   ├── handover/         # HandoverScreen/UiState/ViewModel — Bölüm 4
+│   │   ├── history/          # HistoryScreen/UiState/ViewModel/RentalUiModel — Bölüm 6
+│   │   ├── license/          # LicenseUploadScreen/UiState/ViewModel (3 adım + selfie) — Bölüm 2
+│   │   ├── login/            # LoginScreen/UiState/ViewModel — Bölüm 1
 │   │   ├── map/               # MapScreen/UiState/ViewModel + MarkerBitmapFactory,
-│   │   │                      # VehicleDetailSheet, VehicleStatusVisuals, VehicleType — Batch 3
-│   │   ├── onboarding/        # OnboardingScreen/UiState/ViewModel (3 sayfa) — Batch 1
-│   │   ├── profile/           # ProfileScreen/UiState/ViewModel — Batch 6
-│   │   ├── referral/          # ReferralScreen/UiState/ViewModel — Batch 6
-│   │   ├── register/          # RegisterScreen/UiState/ViewModel (+referans kodu) — Batch 1
-│   │   ├── reservation/       # ReservationScreen/UiState/ViewModel — Batch 3
-│   │   ├── settings/          # SettingsScreen/UiState/ViewModel — Batch 6
-│   │   ├── tripsummary/       # TripSummaryScreen/UiState/ViewModel (+İyzico) — Batch 5
-│   │   └── wallet/            # WalletScreen/UiState/ViewModel (+kart yönetimi) — Batch 5
+│   │   │                      # VehicleDetailSheet, VehicleStatusVisuals, VehicleType — Bölüm 3
+│   │   ├── onboarding/        # OnboardingScreen/UiState/ViewModel (3 sayfa) — Bölüm 1
+│   │   ├── profile/           # ProfileScreen/UiState/ViewModel — Bölüm 6
+│   │   ├── referral/          # ReferralScreen/UiState/ViewModel — Bölüm 6
+│   │   ├── register/          # RegisterScreen/UiState/ViewModel (+referans kodu) — Bölüm 1
+│   │   ├── reservation/       # ReservationScreen/UiState/ViewModel — Bölüm 3
+│   │   ├── settings/          # SettingsScreen/UiState/ViewModel — Bölüm 6
+│   │   ├── tripsummary/       # TripSummaryScreen/UiState/ViewModel (+İyzico) — Bölüm 5
+│   │   └── wallet/            # WalletScreen/UiState/ViewModel (+kart yönetimi) — Bölüm 5
 │   └── theme/
 │       ├── Color.kt          # Açık/koyu semantik renk paleti (CompositionLocal)
 │       ├── Dimens.kt         # Boşluk/köşe yarıçapı/kontrol yüksekliği tasarım token'ları
@@ -316,7 +314,7 @@ Kamera çekimleri, uygulamaya özel `FileProvider` (`${applicationId}.fileprovid
 
 Backend, [docs/api-openapi_v2.json](docs/api-openapi_v2.json) dosyasında tanımlı OpenAPI 3.0 şemasını uygular (`docs/api-openapi.json` eski v1 sürümüdür, referans amaçlı depoda tutulur). Başlıca uç nokta grupları:
 
-| Grup | Açıklama | İlgili Batch |
+| Grup | Açıklama | İlgili Bölüm |
 |---|---|---|
 | `Auth` | Kayıt, OTP ile giriş, token yenileme, çıkış, `/auth/me` | 1 |
 | `License` | Ehliyet yükleme ve durum sorgulama | 2 |
@@ -328,7 +326,7 @@ Backend, [docs/api-openapi_v2.json](docs/api-openapi_v2.json) dosyasında tanım
 
 Ayrıca OpenAPI şemasında yer almayan, istemcinin doğrudan tükettiği harici/entegrasyon uçları:
 
-| Grup | Açıklama | İlgili Batch |
+| Grup | Açıklama | İlgili Bölüm |
 |---|---|---|
 | `Cards` | Kayıtlı kart CRUD + varsayılan kart | 5 |
 | `İyzico` | Checkout form, 3-D Secure init, doğrudan kart tahsilatı (backend REST uçları) | 5 |
@@ -366,8 +364,6 @@ API taban adresi ve diğer ağ ayarları [NetworkModule.kt](app/src/main/java/co
 - Nominatim istemcisi ayrı bir `Retrofit`/`OkHttpClient` ile (`https://nominatim.openstreetmap.org/`) tanımlıdır, kendi `User-Agent` interceptor'ına sahiptir.
 
 Kendi backend adresinizi kullanmak için bu dosyadaki değerleri güncelleyin.
-
-`debug` build tipinde onboarding ekranı `ALWAYS_SHOW_ONBOARDING` bayrağıyla her açılışta gösterilir; bu davranış `release` derlemesinde kapatılır ([app/build.gradle.kts](app/build.gradle.kts)).
 
 ## Ekip
 

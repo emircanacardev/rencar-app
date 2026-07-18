@@ -11,7 +11,7 @@ This repository contains the **Android (Kotlin + Jetpack Compose) client** side 
 ## Table of Contents
 
 - [User Flow](#user-flow)
-- [Features (by Batch)](#features-by-batch)
+- [Features](#features)
   - [1. Authentication, Onboarding & Session Persistence](#1-authentication-onboarding--session-persistence)
   - [2. License Verification](#2-license-verification)
   - [3. Vehicle Discovery & Reservation](#3-vehicle-discovery--reservation)
@@ -44,16 +44,16 @@ Splash (waits until the saved session is verified)
 
 If a session is already saved, the splash screen validates the token in the background and takes the user straight to the Map screen; onboarding and login are not shown again.
 
-## Features (by Batch)
+## Features
 
-For ease of review and testing, features are split into 6 batches that follow the app's actual flow order.
+For ease of review and testing, features are split into 6 sections that follow the app's actual flow order.
 
 ### 1. Authentication, Onboarding & Session Persistence
-- **Onboarding** — a 3-page swipeable intro with a page indicator and back-button support to return to the previous page; shown only on first launch (`OnboardingPreferences`, persisted via DataStore). In `debug` builds it is shown again on every launch via the `BuildConfig.ALWAYS_SHOW_ONBOARDING` flag (see [Configuration](#configuration)).
+- **Onboarding** — a 3-page swipeable intro with a page indicator and back-button support to return to the previous page; shown only on first launch (`OnboardingPreferences`, persisted via DataStore).
 - **Passwordless login (OTP)** — sign in with a phone number (the `+90` prefix is added automatically), a 6-digit SMS verification code, a 60-second "resend" counter (`AuthConstants`); verification is triggered automatically as soon as the code is complete.
 - **Registration** — full name, email, password (min. 6 characters), phone number, and an optional **referral code**; a newly registered user is signed in immediately with the `PENDING` role.
 - **Persistent session (Splash + SessionManager)** — on app start, `SessionManager` restores the saved access/refresh token pair from `TokenStorage` (DataStore) and validates it in the background with a 5-second timeout; the `core-splashscreen` screen is kept on screen for that duration (`setKeepOnScreenCondition`), so a logged-in user never sees the login screen flash by. Concurrent 401s are serialized behind a `Mutex` for token refresh — otherwise the backend's refresh-token rotation rule would treat a second, simultaneous refresh request as a "stolen token" and kill the whole session chain. `AuthSession` keeps the access/refresh pair as a single atomic unit (`TokenPair`) and queues disk writes on a separate, single-threaded queue so parallel writes can't overwrite each other.
-- **Token rotation** — the refresh token is renewed on every use; if an old token is reused, the session chain is revoked for security. After license approval, a `CUSTOMER` token can be obtained via `refreshSession()` without logging in again (see Batch 6 — Profile).
+- **Token rotation** — the refresh token is renewed on every use; if an old token is reused, the session chain is revoked for security. After license approval, a `CUSTOMER` token can be obtained via `refreshSession()` without logging in again (see Section 6 — Profile).
 - After registration, the user is routed directly to the **License Upload** screen (`AuthSession.justRegistered`).
 - Related files: `ui/screens/onboarding/`, `ui/screens/login/`, `ui/screens/register/`, `data/auth/`
 
@@ -105,58 +105,56 @@ For ease of review and testing, features are split into 6 batches that follow th
 
 ## Screenshots
 
-> Just drop the images into the [docs/screenshots/](docs/screenshots/) folder using the filenames below — this table fills in automatically, no other README changes needed. Each screen's dark theme (default filename) and light theme (`_light` suffix) counterpart are shown separately. Tables are grouped in the same batch order as above.
-
 ### Launch
 
 | Splash |
 |---|
-| ![Splash](docs/screenshots/splash.png) |
+| <img src="docs/screenshots/splash.png" width="220"> |
 
-### Batch 1 — Authentication, Onboarding & Session Persistence
-
-| Screen | Dark Theme | Light Theme |
-|---|---|---|
-| Onboarding | ![Onboarding](docs/screenshots/onboarding.png) | ![Onboarding Light](docs/screenshots/onboarding_light.png) |
-| Login / OTP | ![Login](docs/screenshots/login.png) | ![Login Light](docs/screenshots/login_light.png) |
-| Register | ![Register](docs/screenshots/register.png) | ![Register Light](docs/screenshots/register_light.png) |
-
-### Batch 2 — License Verification
+### Section 1 — Authentication, Onboarding & Session Persistence
 
 | Screen | Dark Theme | Light Theme |
 |---|---|---|
-| License Upload | ![License](docs/screenshots/license.png) | ![License Light](docs/screenshots/license_light.png) |
+| Onboarding | <img src="docs/screenshots/onboarding.png" width="220"> | <img src="docs/screenshots/onboarding_light.png" width="220"> |
+| Login / OTP | <img src="docs/screenshots/login.png" width="220"> | <img src="docs/screenshots/login_light.png" width="220"> |
+| Register | <img src="docs/screenshots/register.png" width="220"> | <img src="docs/screenshots/register_light.png" width="220"> |
 
-### Batch 3 — Vehicle Discovery & Reservation
-
-| Screen | Dark Theme | Light Theme |
-|---|---|---|
-| Map (Home) | ![Homepage](docs/screenshots/homepage.png) | ![Homepage Light](docs/screenshots/homepage_light.png) |
-| Vehicle Detail | ![Vehicle Detail](docs/screenshots/vehicle_detail.png) | ![Vehicle Detail Light](docs/screenshots/vehicle_detail_light.png) |
-| Reservation | ![Reservation](docs/screenshots/reservation.png) | ![Reservation Light](docs/screenshots/reservation_light.png) |
-
-### Batch 4 — Handover & Active Trip
+### Section 2 — License Verification
 
 | Screen | Dark Theme | Light Theme |
 |---|---|---|
-| Handover (4-Direction Photos) | ![Handover](docs/screenshots/handover.png) | ![Handover Light](docs/screenshots/handover_light.png) |
-| Active Trip | ![Active Rental](docs/screenshots/active_rental.png) | ![Active Rental Light](docs/screenshots/active_rental_light.png) |
+| License Upload | <img src="docs/screenshots/license.png" width="220"> | <img src="docs/screenshots/license_light.png" width="220"> |
 
-### Batch 5 — Payment & Wallet
-
-| Screen | Dark Theme | Light Theme |
-|---|---|---|
-| Trip Summary / Payment | ![Trip Summary](docs/screenshots/trip_summary.png) | ![Trip Summary Light](docs/screenshots/trip_summary_light.png) |
-| Wallet | ![Wallet](docs/screenshots/wallet.png) | ![Wallet Light](docs/screenshots/wallet_light.png) |
-
-### Batch 6 — Profile, History, Referral & Settings
+### Section 3 — Vehicle Discovery & Reservation
 
 | Screen | Dark Theme | Light Theme |
 |---|---|---|
-| History | ![History](docs/screenshots/history.png) | ![History Light](docs/screenshots/history_light.png) |
-| Profile | ![Profile](docs/screenshots/profile.png) | ![Profile Light](docs/screenshots/profile_light.png) |
-| Referral | ![Referral](docs/screenshots/referral.png) | ![Referral Light](docs/screenshots/referral_light.png) |
-| Settings | ![Settings](docs/screenshots/settings.png) | ![Settings Light](docs/screenshots/settings_light.png) |
+| Map (Home) | <img src="docs/screenshots/homepage.png" width="220"> | <img src="docs/screenshots/homepage_light.png" width="220"> |
+| Vehicle Detail | <img src="docs/screenshots/vehicle_detail.png" width="220"> | <img src="docs/screenshots/vehicle_detail_light.png" width="220"> |
+| Reservation | <img src="docs/screenshots/reservation.png" width="220"> | <img src="docs/screenshots/reservation_light.png" width="220"> |
+
+### Section 4 — Handover & Active Trip
+
+| Screen | Dark Theme | Light Theme |
+|---|---|---|
+| Handover (4-Direction Photos) | <img src="docs/screenshots/handover.png" width="220"> | <img src="docs/screenshots/handover_light.png" width="220"> |
+| Active Trip | <img src="docs/screenshots/active_rental.png" width="220"> | <img src="docs/screenshots/active_rental_light.png" width="220"> |
+
+### Section 5 — Payment & Wallet
+
+| Screen | Dark Theme | Light Theme |
+|---|---|---|
+| Trip Summary / Payment | <img src="docs/screenshots/trip_summary.png" width="220"> | <img src="docs/screenshots/trip_summary_light.png" width="220"> |
+| Wallet | <img src="docs/screenshots/wallet.png" width="220"> | <img src="docs/screenshots/wallet_light.png" width="220"> |
+
+### Section 6 — Profile, History, Referral & Settings
+
+| Screen | Dark Theme | Light Theme |
+|---|---|---|
+| History | <img src="docs/screenshots/history.png" width="220"> | <img src="docs/screenshots/history_light.png" width="220"> |
+| Profile | <img src="docs/screenshots/profile.png" width="220"> | <img src="docs/screenshots/profile_light.png" width="220"> |
+| Referral | <img src="docs/screenshots/referral.png" width="220"> | <img src="docs/screenshots/referral_light.png" width="220"> |
+| Settings | <img src="docs/screenshots/settings.png" width="220"> | <img src="docs/screenshots/settings_light.png" width="220"> |
 
 ## Architecture & Tech Stack
 
@@ -255,21 +253,21 @@ app/src/main/java/com/flowbytestudio/rencar/
 │   │   ├── MapStyles.kt      # MapLibre light/dark raster style JSON
 │   │   └── Money.kt          # TL formatting (with ₺)
 │   ├── screens/
-│   │   ├── activerental/     # ActiveRentalScreen/UiState/ViewModel — Batch 4
-│   │   ├── handover/         # HandoverScreen/UiState/ViewModel — Batch 4
-│   │   ├── history/          # HistoryScreen/UiState/ViewModel/RentalUiModel — Batch 6
-│   │   ├── license/          # LicenseUploadScreen/UiState/ViewModel (3 steps + selfie) — Batch 2
-│   │   ├── login/            # LoginScreen/UiState/ViewModel — Batch 1
+│   │   ├── activerental/     # ActiveRentalScreen/UiState/ViewModel — Section 4
+│   │   ├── handover/         # HandoverScreen/UiState/ViewModel — Section 4
+│   │   ├── history/          # HistoryScreen/UiState/ViewModel/RentalUiModel — Section 6
+│   │   ├── license/          # LicenseUploadScreen/UiState/ViewModel (3 steps + selfie) — Section 2
+│   │   ├── login/            # LoginScreen/UiState/ViewModel — Section 1
 │   │   ├── map/               # MapScreen/UiState/ViewModel + MarkerBitmapFactory,
-│   │   │                      # VehicleDetailSheet, VehicleStatusVisuals, VehicleType — Batch 3
-│   │   ├── onboarding/        # OnboardingScreen/UiState/ViewModel (3 pages) — Batch 1
-│   │   ├── profile/           # ProfileScreen/UiState/ViewModel — Batch 6
-│   │   ├── referral/          # ReferralScreen/UiState/ViewModel — Batch 6
-│   │   ├── register/          # RegisterScreen/UiState/ViewModel (+referral code) — Batch 1
-│   │   ├── reservation/       # ReservationScreen/UiState/ViewModel — Batch 3
-│   │   ├── settings/          # SettingsScreen/UiState/ViewModel — Batch 6
-│   │   ├── tripsummary/       # TripSummaryScreen/UiState/ViewModel (+İyzico) — Batch 5
-│   │   └── wallet/            # WalletScreen/UiState/ViewModel (+card management) — Batch 5
+│   │   │                      # VehicleDetailSheet, VehicleStatusVisuals, VehicleType — Section 3
+│   │   ├── onboarding/        # OnboardingScreen/UiState/ViewModel (3 pages) — Section 1
+│   │   ├── profile/           # ProfileScreen/UiState/ViewModel — Section 6
+│   │   ├── referral/          # ReferralScreen/UiState/ViewModel — Section 6
+│   │   ├── register/          # RegisterScreen/UiState/ViewModel (+referral code) — Section 1
+│   │   ├── reservation/       # ReservationScreen/UiState/ViewModel — Section 3
+│   │   ├── settings/          # SettingsScreen/UiState/ViewModel — Section 6
+│   │   ├── tripsummary/       # TripSummaryScreen/UiState/ViewModel (+İyzico) — Section 5
+│   │   └── wallet/            # WalletScreen/UiState/ViewModel (+card management) — Section 5
 │   └── theme/
 │       ├── Color.kt          # Light/dark semantic color palette (CompositionLocal)
 │       ├── Dimens.kt         # Spacing/corner-radius/control-height design tokens
@@ -316,7 +314,7 @@ Camera captures are written to temporary cache files through an app-specific `Fi
 
 The backend implements the OpenAPI 3.0 schema defined in [docs/api-openapi_v2.json](docs/api-openapi_v2.json) (`docs/api-openapi.json` is the older v1 version, kept in the repo for reference). Main endpoint groups:
 
-| Group | Description | Related Batch |
+| Group | Description | Related Section |
 |---|---|---|
 | `Auth` | Registration, OTP login, token refresh, logout, `/auth/me` | 1 |
 | `License` | License upload and status lookup | 2 |
@@ -328,7 +326,7 @@ The backend implements the OpenAPI 3.0 schema defined in [docs/api-openapi_v2.js
 
 Additionally, external/integration endpoints not present in the OpenAPI schema that the client consumes directly:
 
-| Group | Description | Related Batch |
+| Group | Description | Related Section |
 |---|---|---|
 | `Cards` | Saved card CRUD + default card | 5 |
 | `İyzico` | Checkout form, 3-D Secure init, direct card charging (backend REST endpoints) | 5 |
@@ -366,8 +364,6 @@ The API base address and other network settings are defined in [NetworkModule.kt
 - The Nominatim client is defined with its own separate `Retrofit`/`OkHttpClient` (`https://nominatim.openstreetmap.org/`) and has its own `User-Agent` interceptor.
 
 To point the app at your own backend, update the values in this file.
-
-In `debug` builds, the onboarding screen is shown on every launch via the `ALWAYS_SHOW_ONBOARDING` flag; this behavior is disabled in `release` builds ([app/build.gradle.kts](app/build.gradle.kts)).
 
 ## Team
 
