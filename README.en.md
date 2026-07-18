@@ -1,4 +1,4 @@
-# Rencar — Usage-Based Car Rental
+# Rencar — Car Rental
 
 *[Türkçe](README.md) | English*
 
