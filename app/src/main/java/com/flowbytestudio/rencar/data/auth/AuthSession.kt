@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +16,16 @@ enum class SessionState { UNKNOWN, LOGGED_IN, LOGGED_OUT }
 
 object AuthSession {
 
-    var accessToken: String? = null
-        private set
-    var refreshToken: String? = null
-        private set
+    private data class TokenPair(val access: String, val refresh: String)
+
+    // Çift alan yerine tek volatile holder: authInterceptor ve persist işleri
+    // farklı thread'lerden okuduğu için çiftin asla "yarım" (biri eski biri yeni)
+    // görünmemesi gerekir.
+    @Volatile
+    private var tokenPair: TokenPair? = null
+
+    val accessToken: String? get() = tokenPair?.access
+    val refreshToken: String? get() = tokenPair?.refresh
 
     private val _currentUser = MutableStateFlow<UserResponse?>(null)
     val currentUser: StateFlow<UserResponse?> = _currentUser.asStateFlow()
@@ -31,11 +38,14 @@ object AuthSession {
 
     private var appContext: Context? = null
 
-    // Tek şeritli dispatcher: rotasyonda eski refresh token'ın yeni kaydın üzerine
-    // yazılmaması için persist işleri sıraya girer.
+    // Tek şeritli persist kuyruğu: her iş anlık durumu ÇALIŞIRKEN okur, böylece
+    // bayat bir kopya sonradan yazılmış rotasyon token'ının üzerine binemez.
     @OptIn(ExperimentalCoroutinesApi::class)
     private val persistScope =
         CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(1))
+
+    @Volatile
+    private var lastPersistJob: Job? = null
 
     fun init(context: Context) {
         if (appContext != null) return
@@ -43,23 +53,21 @@ object AuthSession {
     }
 
     fun onAuthenticated(response: AuthResponse, isNewRegistration: Boolean = false) {
-        accessToken = response.accessToken
-        refreshToken = response.refreshToken
+        tokenPair = TokenPair(response.accessToken, response.refreshToken)
         _currentUser.value = response.user
         _sessionState.value = SessionState.LOGGED_IN
         justRegistered = isNewRegistration
-        persist()
+        enqueuePersist()
     }
 
     // Cihazda kayıtlı oturumu belleğe alır; geçerliliği SessionManager.bootstrap doğrular.
     fun restore(saved: TokenStorage.Persisted) {
-        accessToken = saved.accessToken
-        refreshToken = saved.refreshToken
+        tokenPair = TokenPair(saved.accessToken, saved.refreshToken)
         _currentUser.value = saved.user
     }
 
-    // Bootstrap'ta refresh ağ hatasıyla başarısız olursa eldeki token'larla devam edilir;
-    // Authenticator ağ gelince tazeler.
+    // Bootstrap'ta refresh ağ hatası/zaman aşımıyla sonuçlanırsa eldeki token'larla
+    // devam edilir; Authenticator gerektiğinde tazeler.
     fun markSessionValid() {
         _sessionState.value = SessionState.LOGGED_IN
     }
@@ -74,23 +82,35 @@ object AuthSession {
 
     fun updateCurrentUser(user: UserResponse) {
         _currentUser.value = user
-        persist()
+        if (tokenPair != null) enqueuePersist()
     }
 
     fun clear() {
-        accessToken = null
-        refreshToken = null
+        tokenPair = null
         _currentUser.value = null
         _sessionState.value = SessionState.LOGGED_OUT
         justRegistered = false
-        appContext?.let { ctx -> persistScope.launch { TokenStorage.clear(ctx) } }
+        enqueuePersist()
     }
 
-    private fun persist() {
+    // Rotasyonda yeni refresh token diske inmeden işlem "tamam" sayılmasın diye
+    // SessionManager mutex'i bırakmadan önce bunu bekler (reuse detection'a karşı).
+    suspend fun flushPersist() {
+        lastPersistJob?.join()
+    }
+
+    private fun enqueuePersist() {
         val ctx = appContext ?: return
-        val access = accessToken ?: return
-        val refresh = refreshToken ?: return
-        val user = _currentUser.value
-        persistScope.launch { TokenStorage.save(ctx, access, refresh, user) }
+        lastPersistJob = persistScope.launch {
+            // Disk hatası (dolu disk vb.) oturumu değil sadece kalıcılığı kaybettirir.
+            runCatching {
+                val pair = tokenPair
+                if (pair == null) {
+                    TokenStorage.clear(ctx)
+                } else {
+                    TokenStorage.save(ctx, pair.access, pair.refresh, _currentUser.value)
+                }
+            }
+        }
     }
 }

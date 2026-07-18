@@ -1,13 +1,21 @@
 package com.flowbytestudio.rencar.data.auth
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
-private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
+// Bozuk dosya (yarım yazma/elektrik kesintisi) her açılışta CorruptionException
+// fırlatıp crash döngüsü yaratmasın: dosya boş tercihlerle değiştirilir, kullanıcı
+// en kötü ihtimalle bir kez yeniden giriş yapar.
+private val Context.authDataStore by preferencesDataStore(
+    name = "auth_prefs",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() },
+)
 
 /**
  * Oturum token'larını uygulamaya özel DataStore'da kalıcı tutar. Refresh token

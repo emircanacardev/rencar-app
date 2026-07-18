@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.flowbytestudio.rencar.data.auth.AuthConstants
 import com.flowbytestudio.rencar.data.auth.AuthRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ class LoginViewModel(
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
+    private var verifyJob: Job? = null
 
     fun onPhoneChange(phone: String) {
         val digitsOnly = phone.filter { it.isDigit() }
@@ -32,13 +34,17 @@ class LoginViewModel(
 
     fun onCodeChange(code: String) {
         val digitsOnly = code.filter { it.isDigit() }
-        if (digitsOnly.length <= AuthConstants.OTP_DIGIT_COUNT) {
-            _uiState.update { it.copy(code = digitsOnly, error = null) }
-            // Son hane girilir girilmez otomatik doğrula; buton yine de duruyor.
-            // Hatalı kodda kullanıcı düzeltince (uzunluk tekrar tamamlanınca) yeniden tetiklenir.
-            if (digitsOnly.length == AuthConstants.OTP_DIGIT_COUNT && !_uiState.value.isLoading) {
-                onVerifyOtp()
-            }
+        if (digitsOnly.length > AuthConstants.OTP_DIGIT_COUNT) return
+        val previousLength = _uiState.value.code.length
+        _uiState.update { it.copy(code = digitsOnly, error = null) }
+        // Son hane girilir girilmez otomatik doğrula; buton yine de duruyor.
+        // previousLength şartı: dolu alan üzerinde düzeltme yapılırken her ara
+        // adımda tekrar tetiklenmeyi önler (yalnız yeni tamamlanan kod gönderilir).
+        if (digitsOnly.length == AuthConstants.OTP_DIGIT_COUNT &&
+            previousLength < AuthConstants.OTP_DIGIT_COUNT &&
+            !_uiState.value.isLoading
+        ) {
+            onVerifyOtp()
         }
     }
 
@@ -61,6 +67,10 @@ class LoginViewModel(
                             it.copy(
                                 isLoading = false,
                                 step = LoginStep.OTP,
+                                // Tekrar gönderimde eski kod alanda kalmasın: yeni SMS
+                                // gelince üzerinde düzeltme yaparken otomatik doğrulama
+                                // karışık (eski+yeni) kodla ateşlenirdi.
+                                code = "",
                                 timerSeconds = AuthConstants.OTP_RESEND_COOLDOWN_SECONDS,
                                 canResendOtp = false,
                             )
@@ -107,7 +117,8 @@ class LoginViewModel(
             return
         }
 
-        viewModelScope.launch {
+        verifyJob?.cancel()
+        verifyJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 repository.verifyOtp(fullPhone, code)
@@ -115,6 +126,9 @@ class LoginViewModel(
                         _uiState.update { it.copy(isLoading = false, isLoggedIn = true) }
                     }
                     .onFailure { throwable ->
+                        // İptal edilen doğrulamanın (numara değiştirme/geri) sonucu
+                        // telefon adımında anlamsız bir hata olarak görünmesin.
+                        if (throwable is CancellationException) return@onFailure
                         val errorMessage = if (throwable is IOException) {
                             "Bağlantı hatası oluştu."
                         } else {
@@ -134,7 +148,10 @@ class LoginViewModel(
 
     fun onChangePhone() {
         timerJob?.cancel()
-        _uiState.update { 
+        // Otomatik gönderim yüzünden uçuşta bir doğrulama olabilir; sonucu
+        // (hata mesajı ya da beklenmedik login) telefon adımına taşınmasın.
+        verifyJob?.cancel()
+        _uiState.update {
             it.copy(
                 step = LoginStep.PHONE, 
                 code = "", 

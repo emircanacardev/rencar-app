@@ -60,11 +60,10 @@ object NetworkModule {
         if (attemptCount(response) >= 2) return@Authenticator null
 
         val failedToken = response.request.header("Authorization")?.removePrefix("Bearer ")
+        // "Zaten tazelendi mi?" kontrolü SessionManager'da mutex İÇİNDE yapılır;
+        // böylece aynı anda 401 alan N istek tek rotasyonu paylaşır.
         val freshToken = runBlocking {
-            val current = AuthSession.accessToken
-            // Paralel bir istek token'ı bu 401'den sonra zaten tazelediyse yeniden tazeleme.
-            if (current != null && current != failedToken) current
-            else SessionManager.refresh().getOrNull()?.accessToken
+            SessionManager.refreshedAccessToken(failedToken)
         } ?: return@Authenticator null
 
         response.request.newBuilder()
