@@ -2,6 +2,7 @@ package com.flowbytestudio.rencar.ui.screens.reservation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.RentalPlan
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
 import com.flowbytestudio.rencar.data.rentals.RentalStatus
@@ -13,6 +14,7 @@ import com.flowbytestudio.rencar.data.reservations.ReservationVehicleSummary
 import com.flowbytestudio.rencar.data.reservations.reservationStatus
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -204,7 +206,7 @@ class ReservationViewModel(
                 .onFailure { throwable ->
                     // 409/404: rezervasyon zaten yok — yine de seçim durumuna dön.
                     if (throwable is HttpException && (throwable.code() == 409 || throwable.code() == 404)) {
-                        revertToSelection(notice = "Rezervasyon zaten sona ermiş.")
+                        revertToSelection(notice = R.string.reservation_notice_already_ended)
                     } else {
                         _uiState.update {
                             it.copy(
@@ -288,7 +290,7 @@ class ReservationViewModel(
     private fun enterReservationActive(reservation: ReservationResponse) {
         val remaining = reservation.remainingSeconds
         if (remaining <= 0) {
-            revertToSelection(notice = "Rezervasyon süresi doldu. Aracı yeniden rezerve edebilirsiniz.")
+            revertToSelection(notice = R.string.reservation_notice_expired)
             return
         }
         _uiState.update {
@@ -304,7 +306,7 @@ class ReservationViewModel(
         startTicker()
     }
 
-    private fun revertToSelection(notice: String?) {
+    private fun revertToSelection(@androidx.annotation.StringRes notice: Int?) {
         stopTicker()
         _uiState.update {
             it.copy(
@@ -326,9 +328,7 @@ class ReservationViewModel(
                 delay(1000)
                 val next = _uiState.value.remainingSeconds - 1
                 if (next <= 0) {
-                    revertToSelection(
-                        notice = "Rezervasyon süresi doldu. Aracı yeniden rezerve edebilirsiniz.",
-                    )
+                    revertToSelection(notice = R.string.reservation_notice_expired)
                     break
                 }
                 _uiState.update { it.copy(remainingSeconds = next) }
@@ -370,45 +370,49 @@ private fun isoEndDate(days: Int): String {
     return format.format(Date(millis))
 }
 
-private fun Throwable.toLoadErrorMessage(): String = when {
-    this is HttpException && code() == 404 -> "Bu araç artık müsait değil."
-    this is HttpException && code() == 403 -> "Hesabınız onay bekliyor. Ehliyetiniz onaylandıktan sonra araç kiralayabilirsiniz."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Araç bilgileri yüklenemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toLoadErrorMessage(): Int = toErrorRes(
+    fallback = R.string.reservation_error_vehicle_load_failed,
+    overrides = mapOf(
+        404 to R.string.reservation_error_vehicle_unavailable,
+        403 to R.string.reservation_error_account_pending_load,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
-private fun Throwable.toQuoteErrorMessage(): String = when {
-    this is HttpException && code() == 404 -> "Bu araç artık müsait değil."
-    this is HttpException && code() == 403 -> "Hesabınız onay bekliyor."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Tahmini ücret hesaplanamadı."
-}
+private fun Throwable.toQuoteErrorMessage(): Int = toErrorRes(
+    fallback = R.string.reservation_error_quote_failed,
+    overrides = mapOf(
+        404 to R.string.reservation_error_vehicle_unavailable,
+        403 to R.string.reservation_error_account_pending,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
 // POST /reservations hata eşlemesi.
-private fun Throwable.toReserveErrorMessage(): String = when {
-    this is HttpException && code() == 409 ->
-        "Bu araç şu anda müsait değil ya da zaten aktif bir rezervasyon/kiralamanız var."
-    this is HttpException && code() == 404 -> "Araç bulunamadı."
-    this is HttpException && code() == 403 ->
-        "Hesabınız onay bekliyor. Ehliyetiniz onaylandıktan sonra rezervasyon yapabilirsiniz."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Rezervasyon oluşturulamadı. Lütfen tekrar dene."
-}
+private fun Throwable.toReserveErrorMessage(): Int = toErrorRes(
+    fallback = R.string.reservation_error_reserve_failed,
+    overrides = mapOf(
+        409 to R.string.reservation_error_reserve_conflict,
+        404 to R.string.reservation_error_vehicle_not_found,
+        403 to R.string.reservation_error_account_pending_reserve,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
 // POST /rentals hata eşlemesi (kilidi aç).
-private fun Throwable.toRentalErrorMessage(): String = when {
-    this is HttpException && code() == 409 ->
-        "Kilit açılamadı. Rezervasyonunuz sona ermiş ya da zaten aktif bir kiralamanız olabilir."
-    this is HttpException && code() == 404 -> "Araç bulunamadı."
-    this is HttpException && code() == 403 ->
-        "Hesabınız onay bekliyor. Ehliyetiniz onaylandıktan sonra kiralama yapabilirsiniz."
-    this is HttpException && code() == 400 -> "Kiralama bilgileri geçersiz. Lütfen tekrar dene."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Kiralama başlatılamadı. Lütfen tekrar dene."
-}
+private fun Throwable.toRentalErrorMessage(): Int = toErrorRes(
+    fallback = R.string.reservation_error_rental_start_failed,
+    overrides = mapOf(
+        409 to R.string.reservation_error_unlock_conflict,
+        404 to R.string.reservation_error_vehicle_not_found,
+        403 to R.string.reservation_error_account_pending_unlock,
+        400 to R.string.reservation_error_rental_invalid,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
 // DELETE /reservations/{id} hata eşlemesi.
-private fun Throwable.toCancelErrorMessage(): String = when {
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Rezervasyon iptal edilemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toCancelErrorMessage(): Int = toErrorRes(
+    fallback = R.string.reservation_error_cancel_failed,
+    overrides = mapOf(401 to R.string.common_error_session_expired),
+)

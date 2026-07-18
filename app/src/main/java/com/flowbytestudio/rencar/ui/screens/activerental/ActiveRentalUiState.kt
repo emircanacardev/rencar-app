@@ -1,12 +1,13 @@
 package com.flowbytestudio.rencar.ui.screens.activerental
 
+import androidx.annotation.StringRes
 import com.flowbytestudio.rencar.data.rentals.RentalDto
 import com.flowbytestudio.rencar.data.rentals.VehiclePoint
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
 
 data class ActiveRentalUiState(
     val isLoading: Boolean = true,
-    val loadError: String? = null,
+    @StringRes val loadError: Int? = null,
     val rental: RentalDto? = null,
     // Harita marker'ının ilk konumu; koordinat özet DTO'da (rental.vehicle) yok,
     // bu yüzden araç ayrıca rental.vehicleId ile çekilir. Sonra canlı konumla güncellenir.
@@ -23,9 +24,9 @@ data class ActiveRentalUiState(
     // PREPARING: süre işlemiyor; foto akışı tamamlanıp start çağrılmalı.
     val isPreparing: Boolean = false,
     val isEnding: Boolean = false,
-    val endError: String? = null,
+    @StringRes val endError: Int? = null,
     // Yoklama sırasında oluşan geçici (ölümcül olmayan) bağlantı hatası.
-    val pollError: String? = null,
+    @StringRes val pollError: Int? = null,
     // finish başarılı / 404 (başka yerden bitmiş) / baştan COMPLETED → onEnded().
     val ended: Boolean = false,
 )

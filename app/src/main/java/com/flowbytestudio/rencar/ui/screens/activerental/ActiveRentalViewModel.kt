@@ -2,11 +2,13 @@ package com.flowbytestudio.rencar.ui.screens.activerental
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
 import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.data.rentals.RideLocationClient
 import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 class ActiveRentalViewModel(
     private val rentalId: String,
@@ -80,7 +81,7 @@ class ActiveRentalViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            loadError = "Kiralama bilgileri yüklenemedi. Lütfen tekrar dene.",
+                            loadError = R.string.active_rental_load_error,
                         )
                     }
                 }
@@ -118,7 +119,7 @@ class ActiveRentalViewModel(
                         consecutiveErrors++
                         if (consecutiveErrors >= 2) {
                             _uiState.update {
-                                it.copy(pollError = "Bağlantı yavaş görünüyor, tekrar deneniyor…")
+                                it.copy(pollError = R.string.active_rental_poll_slow_connection)
                             }
                         }
                     }
@@ -187,9 +188,11 @@ class ActiveRentalViewModel(
     }
 }
 
-private fun Throwable.toEndErrorMessage(): String = when {
-    this is HttpException && code() == 409 -> "Yalnızca aktif yolculuklar bitirilebilir."
-    this is HttpException && code() == 404 -> "Kiralama bulunamadı."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Kiralama sonlandırılamadı. Lütfen tekrar dene."
-}
+private fun Throwable.toEndErrorMessage(): Int = toErrorRes(
+    fallback = R.string.active_rental_end_error_generic,
+    overrides = mapOf(
+        409 to R.string.active_rental_end_error_not_active,
+        404 to R.string.common_error_rental_not_found,
+        401 to R.string.common_error_session_expired,
+    ),
+)

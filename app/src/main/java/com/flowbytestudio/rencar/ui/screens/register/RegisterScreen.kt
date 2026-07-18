@@ -2,49 +2,29 @@ package com.flowbytestudio.rencar.ui.screens.register
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.PersonAddAlt
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.auth.AuthConstants
 import com.flowbytestudio.rencar.ui.screens.login.AuthFooterText
 import com.flowbytestudio.rencar.ui.screens.login.PhoneNumberInput
 import com.flowbytestudio.rencar.ui.screens.login.PrimaryAuthButton
-import com.flowbytestudio.rencar.ui.theme.Background
-import com.flowbytestudio.rencar.ui.theme.BgLight
-import com.flowbytestudio.rencar.ui.theme.BorderColor
-import com.flowbytestudio.rencar.ui.theme.Danger
-import com.flowbytestudio.rencar.ui.theme.Primary
-import com.flowbytestudio.rencar.ui.theme.Surface as SurfaceColor
-import com.flowbytestudio.rencar.ui.theme.TextPrimary
-import com.flowbytestudio.rencar.ui.theme.TextSecondary
+import com.flowbytestudio.rencar.ui.theme.*
 
 @Composable
 fun RegisterScreen(
@@ -66,52 +46,52 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = Dimens.SpaceXl)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceM))
             IconButton(
                 onClick = onNavigateToLogin,
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(Dimens.CornerM))
                     .background(BgLight)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Geri",
+                    contentDescription = stringResource(R.string.common_back),
                     tint = TextPrimary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(Dimens.IconSizeM)
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXl))
 
             Text(
-                text = "Hesap oluştur",
+                text = stringResource(R.string.register_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXs))
             Text(
-                text = "Rencar'ı kullanmaya başlamak için birkaç bilgiye ihtiyacımız var.",
+                text = stringResource(R.string.register_subtitle),
                 fontSize = 15.sp,
                 color = TextSecondary,
                 lineHeight = 22.sp
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
 
             OutlinedTextField(
                 value = uiState.fullName,
                 onValueChange = viewModel::onFullNameChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Ad Soyad") },
+                label = { Text(stringResource(R.string.register_full_name_label)) },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerCard),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = SurfaceColor,
-                    unfocusedContainerColor = SurfaceColor
+                    focusedContainerColor = Surface,
+                    unfocusedContainerColor = Surface
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -120,15 +100,15 @@ fun RegisterScreen(
                 value = uiState.email,
                 onValueChange = viewModel::onEmailChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("E-posta") },
+                label = { Text(stringResource(R.string.register_email_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerCard),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = SurfaceColor,
-                    unfocusedContainerColor = SurfaceColor
+                    focusedContainerColor = Surface,
+                    unfocusedContainerColor = Surface
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
@@ -137,22 +117,22 @@ fun RegisterScreen(
                 value = uiState.password,
                 onValueChange = viewModel::onPasswordChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Parola") },
+                label = { Text(stringResource(R.string.register_password_label)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerCard),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = SurfaceColor,
-                    unfocusedContainerColor = SurfaceColor
+                    focusedContainerColor = Surface,
+                    unfocusedContainerColor = Surface
                 )
             )
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "Telefon numarası",
+                text = stringResource(R.string.register_phone_label),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextSecondary
@@ -168,30 +148,31 @@ fun RegisterScreen(
                 value = uiState.referralCode,
                 onValueChange = viewModel::onReferralCodeChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("Davet kodu (opsiyonel)") },
+                label = { Text(stringResource(R.string.register_referral_code_label)) },
                 singleLine = true,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerCard),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Primary,
                     unfocusedBorderColor = BorderColor,
-                    focusedContainerColor = SurfaceColor,
-                    unfocusedContainerColor = SurfaceColor
+                    focusedContainerColor = Surface,
+                    unfocusedContainerColor = Surface
                 )
             )
 
-            if (uiState.error != null) {
+            val errorText = uiState.errorText ?: uiState.error?.let { stringResource(it) }
+            if (errorText != null) {
                 Text(
-                    text = uiState.error ?: "",
+                    text = errorText,
                     color = Danger,
                     fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 12.dp)
+                    modifier = Modifier.padding(top = Dimens.SpaceS)
                 )
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             PrimaryAuthButton(
-                text = "Kayıt Ol",
+                text = stringResource(R.string.register_submit_button),
                 icon = Icons.Outlined.PersonAddAlt,
                 isLoading = uiState.isLoading,
                 enabled = uiState.fullName.isNotBlank() &&
@@ -203,11 +184,11 @@ fun RegisterScreen(
             )
 
             AuthFooterText(
-                mainText = "Zaten hesabın var mı? ",
-                actionText = "Giriş yap",
+                mainText = stringResource(R.string.register_footer_have_account),
+                actionText = stringResource(R.string.common_login_action),
                 onClick = onNavigateToLogin
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
         }
     }
 }

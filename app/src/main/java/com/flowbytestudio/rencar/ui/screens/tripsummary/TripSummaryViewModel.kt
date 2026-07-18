@@ -2,6 +2,7 @@ package com.flowbytestudio.rencar.ui.screens.tripsummary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.cards.CardRepository
 import com.flowbytestudio.rencar.data.iyzico.IyzicoCardRequest
 import com.flowbytestudio.rencar.data.iyzico.IyzicoRepository
@@ -11,6 +12,7 @@ import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.data.rentals.rentalPaymentStatus
 import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.wallet.WalletRepository
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -162,7 +164,7 @@ class TripSummaryViewModel(
                     val url = response.paymentPageUrl
                     if (url == null) {
                         _uiState.update {
-                            it.copy(isPaying = false, payError = "Ödeme sayfası açılamadı. Lütfen tekrar dene.")
+                            it.copy(isPaying = false, payError = R.string.trip_summary_error_payment_page_failed)
                         }
                         return@onSuccess
                     }
@@ -172,7 +174,7 @@ class TripSummaryViewModel(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(isPaying = false, payError = "Ödeme sayfası açılamadı. Lütfen tekrar dene.")
+                        it.copy(isPaying = false, payError = R.string.trip_summary_error_payment_page_failed)
                     }
                 }
         }
@@ -191,13 +193,13 @@ class TripSummaryViewModel(
                         finalizeIyzicoPayment(result.paymentId)
                     } else {
                         _uiState.update {
-                            it.copy(isPaying = false, iyzicoToken = null, payError = "Ödeme tamamlanamadı.")
+                            it.copy(isPaying = false, iyzicoToken = null, payError = R.string.trip_summary_error_payment_incomplete)
                         }
                     }
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(isPaying = false, iyzicoToken = null, payError = "Ödeme sonucu doğrulanamadı.")
+                        it.copy(isPaying = false, iyzicoToken = null, payError = R.string.trip_summary_error_payment_result_unverified)
                     }
                 }
         }
@@ -239,13 +241,13 @@ class TripSummaryViewModel(
                         finalizeIyzicoPayment(response.paymentId)
                     } else {
                         _uiState.update {
-                            it.copy(isPaying = false, payError = "Kart tahsilatı reddedildi. Bilgileri kontrol et.")
+                            it.copy(isPaying = false, payError = R.string.trip_summary_error_card_declined)
                         }
                     }
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(isPaying = false, payError = "Kart tahsilatı reddedildi. Bilgileri kontrol et.")
+                        it.copy(isPaying = false, payError = R.string.trip_summary_error_card_declined)
                     }
                 }
         }
@@ -260,7 +262,7 @@ class TripSummaryViewModel(
                     val html = response.threeDSHtmlContentDecoded
                     if (response.status != "success" || html == null) {
                         _uiState.update {
-                            it.copy(isPaying = false, payError = "3D Secure doğrulaması başlatılamadı.")
+                            it.copy(isPaying = false, payError = R.string.trip_summary_error_threeds_init_failed)
                         }
                         return@onSuccess
                     }
@@ -271,7 +273,7 @@ class TripSummaryViewModel(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(isPaying = false, payError = "3D Secure doğrulaması başlatılamadı.")
+                        it.copy(isPaying = false, payError = R.string.trip_summary_error_threeds_init_failed)
                     }
                 }
         }
@@ -284,7 +286,7 @@ class TripSummaryViewModel(
         _uiState.update { it.copy(iyzicoCheckoutHtml = null) }
         val paymentId = IYZICO_PAYMENT_ID_REGEX.find(pageHtml)?.groupValues?.get(1)
         if (paymentId == null) {
-            _uiState.update { it.copy(isPaying = false, payError = "Ödeme sonucu okunamadı.") }
+            _uiState.update { it.copy(isPaying = false, payError = R.string.trip_summary_error_payment_result_unreadable) }
             return
         }
         viewModelScope.launch { finalizeIyzicoPayment(paymentId) }
@@ -314,32 +316,34 @@ class TripSummaryViewModel(
 // Backend'in 3DS callback sonuç sayfasındaki "Ödeme ID<b>36789054</b>" biçimini hedefler.
 private val IYZICO_PAYMENT_ID_REGEX = Regex("""Ödeme ID</td><td[^>]*><b>(\d+)</b>""")
 
-private fun Throwable.toLoadErrorMessage(): String = when {
-    this is HttpException && code() == 404 -> "Kiralama bulunamadı."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Kiralama özeti yüklenemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toLoadErrorMessage(): Int = toErrorRes(
+    fallback = R.string.trip_summary_error_load_failed,
+    overrides = mapOf(
+        404 to R.string.common_error_rental_not_found,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
 private fun Throwable.toPayErrorMessage(
     discountProvided: Boolean,
     walletInsufficient: Boolean,
-): String = when {
+): Int = when {
     this is HttpException && code() == 409 -> {
         // 409 üç anlama gelebilir: yetersiz bakiye / zaten ödendi / indirim kodu limiti.
         // Önce sunucu mesajından, olmazsa yerel bağlamdan en olası nedeni seçeriz.
         val body = runCatching { response()?.errorBody()?.string() }
             .getOrNull().orEmpty().lowercase(Locale("tr", "TR"))
         when {
-            body.contains("bakiye") -> "Cüzdan bakiyen yetersiz. Bakiye yükle ya da kartla öde."
-            body.contains("indirim") -> "İndirim kodu geçersiz ya da kullanım limiti dolmuş."
-            body.contains("zaten") -> "Bu yolculuğun ödemesi zaten alınmış."
-            walletInsufficient -> "Cüzdan bakiyen yetersiz. Bakiye yükle ya da kartla öde."
-            discountProvided -> "İndirim kodu geçersiz ya da kullanım limiti dolmuş."
-            else -> "Ödeme alınamadı. Bu yolculuk zaten ödenmiş olabilir."
+            body.contains("bakiye") -> R.string.trip_summary_error_wallet_insufficient
+            body.contains("indirim") -> R.string.trip_summary_error_discount_invalid
+            body.contains("zaten") -> R.string.trip_summary_error_already_paid
+            walletInsufficient -> R.string.trip_summary_error_wallet_insufficient
+            discountProvided -> R.string.trip_summary_error_discount_invalid
+            else -> R.string.trip_summary_error_payment_failed_maybe_paid
         }
     }
-    this is HttpException && code() == 404 -> "İndirim kodu ya da kart bulunamadı."
-    this is HttpException && code() == 400 -> "Geçersiz ödeme isteği. Bilgileri kontrol et."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Ödeme alınamadı. Lütfen tekrar dene."
+    this is HttpException && code() == 404 -> R.string.trip_summary_error_discount_or_card_not_found
+    this is HttpException && code() == 400 -> R.string.trip_summary_error_invalid_payment_request
+    this is HttpException && code() == 401 -> R.string.common_error_session_expired
+    else -> R.string.trip_summary_error_payment_failed_retry
 }

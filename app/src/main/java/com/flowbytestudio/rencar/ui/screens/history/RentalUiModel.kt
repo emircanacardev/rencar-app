@@ -1,14 +1,17 @@
 package com.flowbytestudio.rencar.ui.screens.history
 
+import androidx.annotation.StringRes
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.RentalStatus
 
-/** [RentalStatus]'un bu ekrandaki Türkçe görsel karşılığı (renk/etiket seçimi burada yapılır). */
-fun RentalStatus.displayLabel(): String = when (this) {
-    RentalStatus.PREPARING -> "Hazırlanıyor"
-    RentalStatus.ACTIVE -> "Devam ediyor"
-    RentalStatus.COMPLETED -> "Tamamlandı"
-    RentalStatus.CANCELLED -> "İptal edildi"
-    RentalStatus.UNKNOWN -> ""
+/** [RentalStatus]'un bu ekrandaki görsel karşılığı (renk/etiket seçimi burada yapılır). */
+@StringRes
+fun RentalStatus.displayLabelRes(): Int? = when (this) {
+    RentalStatus.PREPARING -> R.string.history_status_preparing
+    RentalStatus.ACTIVE -> R.string.history_status_active
+    RentalStatus.COMPLETED -> R.string.history_status_completed
+    RentalStatus.CANCELLED -> R.string.history_status_cancelled
+    RentalStatus.UNKNOWN -> null
 }
 
 data class RentalUiModel(
@@ -26,7 +29,8 @@ data class RentalUiModel(
     val distanceKm: Double,
     val status: RentalStatus,
     // Bilinen durumlar enum etiketini, bilinmeyenler ham status'u gösterir.
-    val statusLabel: String,
+    @StringRes val statusLabel: Int?,
+    val rawStatusLabel: String,
     // COMPLETED && UNPAID ise ödenmedi rozeti gösterilir.
     val isUnpaidCompleted: Boolean,
 )

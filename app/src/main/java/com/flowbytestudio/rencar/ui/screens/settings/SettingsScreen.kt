@@ -40,16 +40,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.settings.ThemeMode
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BorderColor
 import com.flowbytestudio.rencar.ui.theme.BorderLight
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Divider
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
@@ -89,17 +92,17 @@ private fun SettingsContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Geri", tint = TextPrimary)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = TextPrimary)
             }
             Column {
                 Text(
-                    text = "Ayarlar",
+                    text = stringResource(R.string.common_settings),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                 )
                 Text(
-                    text = "Görünüm, bildirim ve dil tercihleri",
+                    text = stringResource(R.string.settings_subtitle),
                     fontSize = 12.5.sp,
                     color = TextSecondary,
                 )
@@ -122,17 +125,17 @@ private fun SettingsContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             MenuCard {
-                MenuItem(icon = Icons.Outlined.Notifications, label = "Bildirimler")
+                MenuItem(icon = Icons.Outlined.Notifications, label = stringResource(R.string.settings_menu_notifications))
                 MenuDivider()
-                MenuItem(icon = Icons.Outlined.Language, label = "Dil", trailingValue = "Türkçe")
+                MenuItem(icon = Icons.Outlined.Language, label = stringResource(R.string.settings_menu_language), trailingValue = stringResource(R.string.settings_language_value_turkish))
                 MenuDivider()
-                MenuItem(icon = Icons.Outlined.Shield, label = "Gizlilik ve Güvenlik")
+                MenuItem(icon = Icons.Outlined.Shield, label = stringResource(R.string.settings_menu_privacy_security))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Rencar sürüm 2.4.1",
+                text = stringResource(R.string.settings_app_version),
                 fontSize = 11.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = BorderLight,
@@ -158,13 +161,13 @@ private fun AppearanceCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Görünüm",
+                text = stringResource(R.string.settings_appearance_title),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
             )
             Text(
-                text = "Uygulamanın nasıl görüneceğini seç",
+                text = stringResource(R.string.settings_appearance_subtitle),
                 fontSize = 12.5.sp,
                 color = TextSecondary,
                 modifier = Modifier.padding(top = 2.dp, bottom = 14.dp),
@@ -176,19 +179,19 @@ private fun AppearanceCard(
             ) {
                 ThemeOptionItem(
                     icon = Icons.Outlined.LightMode,
-                    label = "Açık",
+                    label = stringResource(R.string.settings_theme_light),
                     selected = selectedMode == ThemeMode.LIGHT,
                     onClick = { onThemeModeSelected(ThemeMode.LIGHT) },
                 )
                 ThemeOptionItem(
                     icon = Icons.Outlined.DarkMode,
-                    label = "Koyu",
+                    label = stringResource(R.string.settings_theme_dark),
                     selected = selectedMode == ThemeMode.DARK,
                     onClick = { onThemeModeSelected(ThemeMode.DARK) },
                 )
                 ThemeOptionItem(
                     icon = Icons.Outlined.SettingsBrightness,
-                    label = "Sistem",
+                    label = stringResource(R.string.settings_theme_system),
                     selected = selectedMode == ThemeMode.SYSTEM,
                     onClick = { onThemeModeSelected(ThemeMode.SYSTEM) },
                 )
@@ -201,7 +204,7 @@ private fun AppearanceCard(
             )
 
             Text(
-                text = "\"Sistem\" seçiliyken tema, cihazının görünüm ayarına göre otomatik değişir.",
+                text = stringResource(R.string.settings_theme_system_hint),
                 fontSize = 11.5.sp,
                 color = TextSecondary,
                 lineHeight = 16.sp,

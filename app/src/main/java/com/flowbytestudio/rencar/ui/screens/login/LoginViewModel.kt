@@ -2,8 +2,10 @@ package com.flowbytestudio.rencar.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.flowbytestudio.rencar.data.auth.AuthConstants
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.auth.AuthRepository
+import com.flowbytestudio.rencar.data.auth.AuthConstants
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -12,8 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 
 class LoginViewModel(
     private val repository: AuthRepository = AuthRepository(),
@@ -37,13 +37,10 @@ class LoginViewModel(
         if (digitsOnly.length > AuthConstants.OTP_DIGIT_COUNT) return
         val previousLength = _uiState.value.code.length
         _uiState.update { it.copy(code = digitsOnly, error = null) }
-        // Son hane girilir girilmez otomatik doğrula; buton yine de duruyor.
-        // previousLength şartı: dolu alan üzerinde düzeltme yapılırken her ara
+        // 6. hane girilir girilmez otomatik doğrula; buton yine de duruyor.
+        // previousLength < 6 şartı: dolu alan üzerinde düzeltme yapılırken her ara
         // adımda tekrar tetiklenmeyi önler (yalnız yeni tamamlanan kod gönderilir).
-        if (digitsOnly.length == AuthConstants.OTP_DIGIT_COUNT &&
-            previousLength < AuthConstants.OTP_DIGIT_COUNT &&
-            !_uiState.value.isLoading
-        ) {
+        if (digitsOnly.length == AuthConstants.OTP_DIGIT_COUNT && previousLength < AuthConstants.OTP_DIGIT_COUNT && !_uiState.value.isLoading) {
             onVerifyOtp()
         }
     }
@@ -51,7 +48,7 @@ class LoginViewModel(
     fun onRequestOtp() {
         val phoneDigits = _uiState.value.phone
         if (phoneDigits.length < AuthConstants.PHONE_DIGIT_COUNT) {
-            _uiState.update { it.copy(error = "Lütfen ${AuthConstants.PHONE_DIGIT_COUNT} haneli telefon numaranızı girin.") }
+            _uiState.update { it.copy(error = R.string.login_error_phone_incomplete) }
             return
         }
 
@@ -72,23 +69,21 @@ class LoginViewModel(
                                 // karışık (eski+yeni) kodla ateşlenirdi.
                                 code = "",
                                 timerSeconds = AuthConstants.OTP_RESEND_COOLDOWN_SECONDS,
-                                canResendOtp = false,
+                                canResendOtp = false
                             )
                         }
                         startTimer()
                     }
                     .onFailure { throwable ->
-                        val statusCode = (throwable as? HttpException)?.code()
-                        val errorMessage = when {
-                            throwable is IOException -> "Bağlantı hatası oluştu."
-                            statusCode == 401 -> "Bu telefon numarasına kayıtlı kullanıcı yok."
-                            else -> "Kod gönderilemedi. Telefon numarasını kontrol et."
-                        }
+                        val errorMessage = throwable.toErrorRes(
+                            fallback = R.string.login_error_otp_send_failed,
+                            overrides = mapOf(401 to R.string.login_error_user_not_found)
+                        )
                         _uiState.update { it.copy(isLoading = false, error = errorMessage) }
                     }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, error = "Bağlantı hatası oluştu.")
+                    it.copy(isLoading = false, error = R.string.common_error_connection)
                 }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
@@ -113,7 +108,7 @@ class LoginViewModel(
         val code = _uiState.value.code
         
         if (code.length != AuthConstants.OTP_DIGIT_COUNT) {
-            _uiState.update { it.copy(error = "${AuthConstants.OTP_DIGIT_COUNT} haneli kodu eksiksiz girin.") }
+            _uiState.update { it.copy(error = R.string.login_error_code_incomplete) }
             return
         }
 
@@ -129,16 +124,14 @@ class LoginViewModel(
                         // İptal edilen doğrulamanın (numara değiştirme/geri) sonucu
                         // telefon adımında anlamsız bir hata olarak görünmesin.
                         if (throwable is CancellationException) return@onFailure
-                        val errorMessage = if (throwable is IOException) {
-                            "Bağlantı hatası oluştu."
-                        } else {
-                            "Kod hatalı veya süresi dolmuş."
-                        }
+                        val errorMessage = throwable.toErrorRes(
+                            fallback = R.string.login_error_code_invalid_or_expired
+                        )
                         _uiState.update { it.copy(isLoading = false, error = errorMessage) }
                     }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, error = "Bağlantı hatası oluştu.")
+                    it.copy(isLoading = false, error = R.string.common_error_connection)
                 }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
@@ -151,7 +144,7 @@ class LoginViewModel(
         // Otomatik gönderim yüzünden uçuşta bir doğrulama olabilir; sonucu
         // (hata mesajı ya da beklenmedik login) telefon adımına taşınmasın.
         verifyJob?.cancel()
-        _uiState.update {
+        _uiState.update { 
             it.copy(
                 step = LoginStep.PHONE, 
                 code = "", 

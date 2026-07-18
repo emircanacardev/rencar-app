@@ -1,5 +1,7 @@
 package com.flowbytestudio.rencar.ui.screens.tripsummary
 
+import androidx.annotation.StringRes
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.cards.CardDto
 import com.flowbytestudio.rencar.data.rentals.PayRentalResponse
 import com.flowbytestudio.rencar.data.rentals.PaymentStatus
@@ -17,12 +19,13 @@ enum class PaymentMethodOption {
     }
 }
 
-/** Makbuzda/menüde gösterilen Türkçe etiket. */
-fun PaymentMethodOption?.displayLabel(): String = when (this) {
-    PaymentMethodOption.WALLET -> "Cüzdan"
-    PaymentMethodOption.CARD -> "Kart"
-    PaymentMethodOption.IYZICO -> "İyzico"
-    null -> "—"
+/** Makbuzda/menüde gösterilen etiket. */
+@StringRes
+fun PaymentMethodOption?.displayLabelRes(): Int = when (this) {
+    PaymentMethodOption.WALLET -> R.string.common_wallet
+    PaymentMethodOption.CARD -> R.string.trip_summary_method_card
+    PaymentMethodOption.IYZICO -> R.string.trip_summary_method_iyzico
+    null -> R.string.common_em_dash
 }
 
 /** İyzico seçilince kendi içindeki tahsilat yöntemi. */
@@ -37,7 +40,7 @@ enum class IyzicoSubMethod {
 
 data class TripSummaryUiState(
     val isLoading: Boolean = true,
-    val loadError: String? = null,
+    @StringRes val loadError: Int? = null,
     val rental: RentalDto? = null,
 
     // Ödeme bölümü (yalnız COMPLETED + UNPAID iken doldurulur)
@@ -47,7 +50,7 @@ data class TripSummaryUiState(
     val selectedCardId: String? = null,
     val discountCode: String = "",
     val isPaying: Boolean = false,
-    val payError: String? = null,
+    @StringRes val payError: Int? = null,
 
     // İyzico alt-yöntem seçimi + kart formu (yalnız CARD_3DS/CARD_DIRECT'te doldurulur).
     val iyzicoSubMethod: IyzicoSubMethod = IyzicoSubMethod.HOSTED_PAGE,

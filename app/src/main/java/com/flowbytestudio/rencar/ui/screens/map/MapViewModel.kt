@@ -2,6 +2,7 @@ package com.flowbytestudio.rencar.ui.screens.map
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.geocoding.GeocodingRepository
 import com.flowbytestudio.rencar.data.geocoding.GeocodingResult
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
@@ -10,6 +11,7 @@ import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.data.reservations.ReservationRepository
 import com.flowbytestudio.rencar.data.vehicles.VehicleDto
 import com.flowbytestudio.rencar.data.vehicles.VehicleRepository
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -21,7 +23,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 class MapViewModel(
     private val repository: VehicleRepository = VehicleRepository(),
@@ -183,13 +184,13 @@ class MapViewModel(
 
 private const val SEARCH_DEBOUNCE_MS = 450L
 
-private fun Throwable.toVehicleLoadErrorMessage(): String = when {
-    this is HttpException && code() == 403 ->
-        "Araçları görüntüleyebilmek için hesabının onaylanmış olması gerekiyor."
-    this is HttpException && code() == 401 ->
-        "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Araçlar yüklenemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toVehicleLoadErrorMessage(): Int = toErrorRes(
+    fallback = R.string.map_error_vehicles_load_failed,
+    overrides = mapOf(
+        403 to R.string.map_error_account_not_approved,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
 fun haversineMeters(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
     val earthRadiusMeters = 6371000.0

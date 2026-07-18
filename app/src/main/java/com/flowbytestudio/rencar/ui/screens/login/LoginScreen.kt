@@ -4,67 +4,35 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.PhonelinkLock
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flowbytestudio.rencar.ui.theme.Background
-import com.flowbytestudio.rencar.ui.theme.BgLight
-import com.flowbytestudio.rencar.ui.theme.BorderColor
-import com.flowbytestudio.rencar.ui.theme.Danger
-import com.flowbytestudio.rencar.ui.theme.Primary
-import com.flowbytestudio.rencar.ui.theme.Surface as SurfaceColor
-import com.flowbytestudio.rencar.ui.theme.TextPrimary
-import com.flowbytestudio.rencar.ui.theme.TextSecondary
+import com.flowbytestudio.rencar.R
+import com.flowbytestudio.rencar.data.auth.AuthConstants
+import com.flowbytestudio.rencar.ui.theme.*
 
 @Composable
 fun LoginScreen(
@@ -91,16 +59,16 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = Dimens.SpaceXl)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceM))
             if (uiState.step == LoginStep.OTP) {
                 AuthBackButton(
-                    modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                    modifier = Modifier.padding(start = Dimens.SpaceXs, top = Dimens.SpaceXxs),
                     onClick = { viewModel.onChangePhone() }
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXl))
 
             if (uiState.step == LoginStep.PHONE) {
                 PhoneStepContent(uiState, viewModel, onNavigateToRegister)
@@ -119,53 +87,53 @@ private fun PhoneStepContent(
 ) {
     Column {
         Text(
-            text = "Tekrar hoş geldin",
+            text = stringResource(R.string.login_welcome_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXs))
         Text(
-            text = "Telefon numaranı gir, SMS ile doğrulama kodu gönderelim.",
+            text = stringResource(R.string.login_phone_subtitle),
             fontSize = 15.sp,
             color = TextSecondary,
             lineHeight = 22.sp
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
 
         PhoneNumberInput(
             value = uiState.phone,
             onValueChange = viewModel::onPhoneChange
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-        AuthInfoText(text = "6 haneli kodu bu numaraya göndereceğiz. SMS ücreti operatörüne bağlıdır.")
+        Spacer(modifier = Modifier.height(Dimens.SpaceM))
+        AuthInfoText(text = stringResource(R.string.login_phone_sms_info))
 
         if (uiState.error != null) {
             Text(
-                text = uiState.error,
+                text = stringResource(uiState.error),
                 color = Danger,
                 fontSize = 13.sp,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = Dimens.SpaceXs)
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryAuthButton(
-            text = "Kod Gönder",
+            text = stringResource(R.string.login_send_code_button),
             icon = Icons.Outlined.ChatBubbleOutline,
             isLoading = uiState.isLoading,
-            enabled = uiState.phone.length == 10 && !uiState.isLoading,
+            enabled = uiState.phone.length == AuthConstants.PHONE_DIGIT_COUNT && !uiState.isLoading,
             onClick = viewModel::onRequestOtp
         )
 
         AuthFooterText(
-            mainText = "Hesabın yok mu? ",
-            actionText = "Kayıt ol",
+            mainText = stringResource(R.string.login_no_account_prompt),
+            actionText = stringResource(R.string.login_register_action),
             onClick = onNavigateToRegister
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
     }
 }
 
@@ -178,7 +146,7 @@ private fun OtpStepContent(
         Box(
             modifier = Modifier
                 .size(64.dp)
-                .clip(RoundedCornerShape(18.dp))
+                .clip(RoundedCornerShape(Dimens.CornerButton))
                 .background(BgLight),
             contentAlignment = Alignment.Center
         ) {
@@ -189,21 +157,21 @@ private fun OtpStepContent(
                 modifier = Modifier.size(32.dp)
             )
         }
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXl))
         Text(
-            text = "Telefonunu doğrula",
+            text = stringResource(R.string.login_otp_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
         )
-        Spacer(modifier = Modifier.height(12.dp))
-        
+        Spacer(modifier = Modifier.height(Dimens.SpaceS))
+
         val formattedPhone = formatPhoneNumber(uiState.phone)
+        val otpInstruction = stringResource(R.string.login_otp_instruction, formattedPhone)
         Text(
             text = buildAnnotatedString {
-                append("+90 $formattedPhone")
-                addStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = TextPrimary), start = 0, end = length)
-                append(" numarasına gönderdiğimiz 6 haneli kodu gir.")
+                append(otpInstruction)
+                addStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = TextPrimary), start = 0, end = "+90 $formattedPhone".length)
             },
             fontSize = 15.sp,
             color = TextSecondary,
@@ -211,25 +179,25 @@ private fun OtpStepContent(
             lineHeight = 22.sp
         )
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
 
         OtpInputFields(
             value = uiState.code,
             onValueChange = viewModel::onCodeChange
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXl))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Outlined.Timer,
                 contentDescription = null,
                 tint = TextSecondary,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(Dimens.IconSizeS)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = if (uiState.canResendOtp) "Kodu tekrar gönder" else "Kodu tekrar gönder · 0:${uiState.timerSeconds.toString().padStart(2, '0')}",
+                text = if (uiState.canResendOtp) stringResource(R.string.login_resend_code_action) else stringResource(R.string.login_resend_code_countdown, uiState.timerSeconds.toString().padStart(2, '0')),
                 fontSize = 14.sp,
                 color = if (uiState.canResendOtp) Primary else TextSecondary,
                 modifier = Modifier.clickable(enabled = uiState.canResendOtp) { viewModel.onRequestOtp() }
@@ -238,28 +206,28 @@ private fun OtpStepContent(
 
         if (uiState.error != null) {
             Text(
-                text = uiState.error,
+                text = stringResource(uiState.error),
                 color = Danger,
                 fontSize = 13.sp,
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier.padding(top = Dimens.SpaceM)
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
         PrimaryAuthButton(
-            text = "Doğrula ve Devam Et",
+            text = stringResource(R.string.login_verify_continue_button),
             isLoading = uiState.isLoading,
-            enabled = uiState.code.length == 6 && !uiState.isLoading,
+            enabled = uiState.code.length == AuthConstants.OTP_DIGIT_COUNT && !uiState.isLoading,
             onClick = viewModel::onVerifyOtp
         )
 
         AuthFooterText(
-            mainText = "Numara yanlış mı? ",
-            actionText = "Değiştir",
+            mainText = stringResource(R.string.login_wrong_number_prompt),
+            actionText = stringResource(R.string.login_change_number_action),
             onClick = { viewModel.onChangePhone() }
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
     }
 }
 
@@ -272,14 +240,14 @@ fun AuthBackButton(
         onClick = onClick,
         modifier = modifier
             .size(44.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(Dimens.CornerM))
             .background(BgLight)
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Geri",
+            contentDescription = stringResource(R.string.common_back),
             tint = TextPrimary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(Dimens.IconSizeM)
         )
     }
 }
@@ -289,29 +257,29 @@ fun PhoneNumberInput(value: String, onValueChange: (String) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .height(56.dp)
+                .height(Dimens.ControlHeight)
                 .width(80.dp)
-                .clip(RoundedCornerShape(14.dp))
+                .clip(RoundedCornerShape(Dimens.CornerCard))
                 .background(BgLight),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "TR  +90", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(text = stringResource(R.string.login_country_code_label), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(Dimens.SpaceS))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.weight(1f),
-            placeholder = { Text("532 000 00 00", color = TextSecondary.copy(alpha = 0.5f)) },
+            placeholder = { Text(stringResource(R.string.login_phone_placeholder), color = TextSecondary.copy(alpha = 0.5f)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             visualTransformation = PhoneVisualTransformation(),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(Dimens.CornerCard),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Primary,
                 unfocusedBorderColor = BorderColor,
-                focusedContainerColor = SurfaceColor,
-                unfocusedContainerColor = SurfaceColor
+                focusedContainerColor = Surface,
+                unfocusedContainerColor = Surface
             )
         )
     }
@@ -324,20 +292,20 @@ fun OtpInputFields(value: String, onValueChange: (String) -> Unit) {
         onValueChange = onValueChange,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         decorationBox = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                repeat(6) { index ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceXs)) {
+                repeat(AuthConstants.OTP_DIGIT_COUNT) { index ->
                     val char = value.getOrNull(index)?.toString() ?: ""
                     val isFocused = value.length == index
                     Box(
                         modifier = Modifier
                             .size(width = 48.dp, height = 56.dp)
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(Dimens.CornerCard))
                             .border(
                                 width = 2.dp,
                                 color = if (isFocused) Primary else BorderColor,
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(Dimens.CornerCard)
                             )
-                            .background(SurfaceColor),
+                            .background(Surface),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -365,10 +333,10 @@ fun PrimaryAuthButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .shadow(if (enabled) 8.dp else 0.dp, RoundedCornerShape(18.dp)),
+            .height(Dimens.ControlHeight)
+            .shadow(if (enabled) 8.dp else 0.dp, RoundedCornerShape(Dimens.CornerButton)),
         enabled = enabled,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(Dimens.CornerButton),
         colors = ButtonDefaults.buttonColors(
             containerColor = Primary,
             disabledContainerColor = Primary.copy(alpha = 0.5f)
@@ -379,8 +347,8 @@ fun PrimaryAuthButton(
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
-                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(Dimens.IconSizeM))
+                    Spacer(modifier = Modifier.width(Dimens.SpaceXs))
                 }
                 Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
@@ -390,14 +358,14 @@ fun PrimaryAuthButton(
 
 @Composable
 fun AuthInfoText(text: String) {
-    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(horizontal = 4.dp)) {
+    Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(horizontal = Dimens.SpaceXxs)) {
         Icon(
             imageVector = Icons.Outlined.Info,
             contentDescription = null,
             tint = TextSecondary,
-            modifier = Modifier.size(16.dp).padding(top = 2.dp)
+            modifier = Modifier.size(Dimens.IconSizeS).padding(top = 2.dp)
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(Dimens.SpaceXs))
         Text(text = text, fontSize = 12.sp, color = TextSecondary, lineHeight = 18.sp)
     }
 }
@@ -415,7 +383,7 @@ fun AuthFooterText(mainText: String, actionText: String, onClick: () -> Unit) {
         color = TextSecondary,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 24.dp)
+            .padding(top = Dimens.SpaceXl)
             .clickable { onClick() },
         textAlign = TextAlign.Center
     )
@@ -432,7 +400,7 @@ private fun formatPhoneNumber(phone: String): String {
 
 class PhoneVisualTransformation : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
-        val trimmed = if (text.text.length >= 10) text.text.substring(0, 10) else text.text
+        val trimmed = if (text.text.length >= AuthConstants.PHONE_DIGIT_COUNT) text.text.substring(0, AuthConstants.PHONE_DIGIT_COUNT) else text.text
         var out = ""
         for (i in trimmed.indices) {
             out += trimmed[i]

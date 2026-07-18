@@ -27,13 +27,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.ui.theme.Background
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
 import com.flowbytestudio.rencar.ui.theme.Surface
@@ -60,10 +63,10 @@ fun ReferralScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Geri", tint = TextPrimary)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = TextPrimary)
             }
             Text(
-                text = "Davet et",
+                text = stringResource(R.string.referral_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
@@ -73,24 +76,24 @@ fun ReferralScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = Dimens.SpaceXl),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXl))
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(Dimens.SpaceXl),
                 color = PrimaryLight,
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .padding(Dimens.SpaceXl),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CardGiftcard,
@@ -99,14 +102,14 @@ fun ReferralScreen(
                         modifier = Modifier.height(40.dp),
                     )
                     Text(
-                        text = "Arkadaşını davet et, ₺50 kazan",
+                        text = stringResource(R.string.referral_invite_headline),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "Davet ettiğin kişi kodunla kayıt olup ilk yolculuğunu tamamladığında cüzdanına 50 TL bonus tanımlanır.",
+                        text = stringResource(R.string.referral_invite_description),
                         fontSize = 13.5.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,
@@ -115,15 +118,15 @@ fun ReferralScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXl))
 
             Text(
-                text = "Davet kodun",
+                text = stringResource(R.string.referral_code_label),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextSecondary,
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXs))
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -149,33 +152,32 @@ fun ReferralScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceL))
 
+            val shareMessage = stringResource(R.string.referral_share_message, uiState.referralCode ?: "")
+            val shareChooserTitle = stringResource(R.string.referral_share_chooser_title)
             Button(
                 onClick = {
-                    val code = uiState.referralCode ?: return@Button
+                    if (uiState.referralCode == null) return@Button
                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            "Rencar'a benim davet kodumla katıl ve avantajlardan yararlan: $code",
-                        )
+                        putExtra(Intent.EXTRA_TEXT, shareMessage)
                     }
-                    context.startActivity(Intent.createChooser(shareIntent, "Davet kodunu paylaş"))
+                    context.startActivity(Intent.createChooser(shareIntent, shareChooserTitle))
                 },
                 enabled = uiState.referralCode != null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerL),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
             ) {
                 Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.height(20.dp))
                 Spacer(modifier = Modifier.height(0.dp).padding(end = 8.dp))
-                Text(text = "Kodu paylaş", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = stringResource(R.string.referral_share_button), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXxl))
         }
     }
 }

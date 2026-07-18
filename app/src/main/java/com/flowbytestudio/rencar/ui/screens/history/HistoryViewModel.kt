@@ -2,6 +2,7 @@ package com.flowbytestudio.rencar.ui.screens.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.PaymentStatus
 import com.flowbytestudio.rencar.data.rentals.RentalDto
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
@@ -54,7 +55,7 @@ class HistoryViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Kiralamalar yüklenemedi. Lütfen tekrar dene.",
+                            errorMessage = R.string.history_load_error,
                         )
                     }
                 }
@@ -75,7 +76,7 @@ class HistoryViewModel(
                 }
                 .onFailure {
                     _uiState.update {
-                        it.copy(statsErrorMessage = "Aylık özet yüklenemedi.")
+                        it.copy(statsErrorMessage = R.string.history_stats_load_error)
                     }
                 }
         }
@@ -100,7 +101,8 @@ private fun RentalDto.toUiModel(): RentalUiModel {
         durationMinutes = durationMinutes,
         distanceKm = distanceKm,
         status = statusEnum,
-        statusLabel = statusEnum.displayLabel().ifEmpty { status },
+        statusLabel = statusEnum.displayLabelRes(),
+        rawStatusLabel = status,
         isUnpaidCompleted = statusEnum == RentalStatus.COMPLETED && rentalPaymentStatus == PaymentStatus.UNPAID,
     )
 }

@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,11 +50,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.AsyncImage
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.ui.common.rememberCameraCapture
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BgLight
 import com.flowbytestudio.rencar.ui.theme.BorderLight
 import com.flowbytestudio.rencar.ui.theme.Danger
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
 import com.flowbytestudio.rencar.ui.theme.Success
@@ -102,15 +105,16 @@ fun HandoverScreen(
                 }
             }
             uiState.loadError != null -> {
+                val loadError = uiState.loadError ?: return@Column
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    modifier = Modifier.fillMaxSize().padding(Dimens.SpaceXl),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Text(text = uiState.loadError.orEmpty(), color = Danger, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = stringResource(loadError), color = Danger, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(Dimens.SpaceS))
                     Button(onClick = viewModel::load) {
-                        Text("Tekrar dene")
+                        Text(stringResource(R.string.common_retry))
                     }
                 }
             }
@@ -126,7 +130,11 @@ fun HandoverScreen(
                             modifier = Modifier.weight(1f),
                         )
                         Text(
-                            text = "${uiState.uploadedCount} / ${PhotoSide.entries.size} çekildi",
+                            text = stringResource(
+                                R.string.handover_photos_taken_progress,
+                                uiState.uploadedCount,
+                                PhotoSide.entries.size,
+                            ),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Primary,
@@ -177,9 +185,10 @@ fun HandoverScreen(
                         )
                     }
 
-                    if (uiState.uploadError != null) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = uiState.uploadError.orEmpty(), color = Danger, fontSize = 13.sp)
+                    val uploadError = uiState.uploadError
+                    if (uploadError != null) {
+                        Spacer(modifier = Modifier.height(Dimens.SpaceS))
+                        Text(text = stringResource(uploadError), color = Danger, fontSize = 13.sp)
                     }
                 }
 
@@ -187,6 +196,7 @@ fun HandoverScreen(
                     isStarting = uiState.isStarting,
                     canStart = uiState.canStart,
                     startError = uiState.startError,
+                    startErrorArg = uiState.startErrorArg,
                     cancelError = uiState.cancelError,
                     onStart = viewModel::startRental,
                     onCancel = viewModel::onCancelClicked,
@@ -200,11 +210,11 @@ fun HandoverScreen(
             onDismissRequest = viewModel::onDismissCancelDialog,
             containerColor = Surface,
             title = {
-                Text(text = "Yolculuğu iptal et?", fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(text = stringResource(R.string.handover_cancel_dialog_title), fontWeight = FontWeight.Bold, color = TextPrimary)
             },
             text = {
                 Text(
-                    text = "Hazırlıktaki yolculuk iptal edilecek ve araç tekrar müsait olacak.",
+                    text = stringResource(R.string.handover_cancel_dialog_message),
                     color = TextSecondary,
                     fontSize = 14.sp,
                 )
@@ -218,13 +228,13 @@ fun HandoverScreen(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text(text = "İptal Et", color = Danger, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.handover_cancel_dialog_confirm_button), color = Danger, fontWeight = FontWeight.SemiBold)
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onDismissCancelDialog, enabled = !uiState.isCancelling) {
-                    Text(text = "Vazgeç", color = TextSecondary)
+                    Text(text = stringResource(R.string.common_cancel), color = TextSecondary)
                 }
             },
         )
@@ -241,19 +251,19 @@ private fun HandoverHeader(onBack: () -> Unit) {
     ) {
         Surface(shape = CircleShape, color = Surface, shadowElevation = 2.dp) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Geri", tint = TextPrimary)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.common_back), tint = TextPrimary)
             }
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(Dimens.SpaceS))
         Column {
             Text(
-                text = "Araç durumu",
+                text = stringResource(R.string.handover_header_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
             )
             Text(
-                text = "Başlamadan önce ${PhotoSide.entries.size} yönü çek",
+                text = stringResource(R.string.handover_header_subtitle, PhotoSide.entries.size),
                 fontSize = 13.sp,
                 color = TextSecondary,
             )
@@ -298,10 +308,11 @@ private fun PhotoSlot(
             .clickable(enabled = !uploading) { onCapture() },
     ) {
         // Yüklü fotoğrafı Coil ile göster; üzerine etiket/rozet biner.
+        val sideLabel = stringResource(side.label)
         if (captured) {
             AsyncImage(
                 model = imageUrl,
-                contentDescription = "${side.label} fotoğrafı",
+                contentDescription = stringResource(R.string.handover_photo_image_content_description, sideLabel),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize().clip(shape),
             )
@@ -312,12 +323,12 @@ private fun PhotoSlot(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(10.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(Dimens.CornerS))
                 .background(if (captured) TextPrimary else BgLight)
                 .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
-                text = side.label,
+                text = sideLabel,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (captured) Background else TextSecondary,
@@ -351,7 +362,7 @@ private fun PhotoSlot(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Check,
-                        contentDescription = "${side.label} çekildi",
+                        contentDescription = stringResource(R.string.handover_photo_taken_content_description, sideLabel),
                         tint = Color.White,
                         modifier = Modifier.size(14.dp),
                     )
@@ -371,13 +382,13 @@ private fun PhotoSlot(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.PhotoCamera,
-                            contentDescription = "${side.label} fotoğrafı çek",
+                            contentDescription = stringResource(R.string.handover_take_photo_content_description, sideLabel),
                             tint = if (highlighted) Color.White else Primary,
                             modifier = Modifier.size(22.dp),
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "Fotoğraf çek", fontSize = 12.sp, color = TextSecondary)
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXs))
+                    Text(text = stringResource(R.string.handover_take_photo_label), fontSize = 12.sp, color = TextSecondary)
                 }
             }
         }
@@ -388,8 +399,9 @@ private fun PhotoSlot(
 private fun HandoverBottomBar(
     isStarting: Boolean,
     canStart: Boolean,
-    startError: String?,
-    cancelError: String?,
+    @androidx.annotation.StringRes startError: Int?,
+    startErrorArg: Int?,
+    @androidx.annotation.StringRes cancelError: Int?,
     onStart: () -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -398,7 +410,7 @@ private fun HandoverBottomBar(
         color = Surface,
         shadowElevation = 12.dp,
     ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)) {
+        Column(modifier = Modifier.padding(horizontal = Dimens.SpaceL, vertical = Dimens.SpaceS)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.WarningAmber,
@@ -408,22 +420,27 @@ private fun HandoverBottomBar(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Hasarları net çek — teslim sonrası anlaşmazlığı önler.",
+                    text = stringResource(R.string.handover_damage_photo_tip),
                     fontSize = 12.sp,
                     color = TextSecondary,
                 )
             }
 
             if (startError != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = startError, color = Danger, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(Dimens.SpaceXs))
+                val message = if (startErrorArg != null) {
+                    stringResource(startError, startErrorArg)
+                } else {
+                    stringResource(startError)
+                }
+                Text(text = message, color = Danger, fontSize = 13.sp)
             }
             if (cancelError != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = cancelError, color = Danger, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(Dimens.SpaceXs))
+                Text(text = stringResource(cancelError), color = Danger, fontSize = 13.sp)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceS))
 
             Button(
                 onClick = onStart,
@@ -431,7 +448,7 @@ private fun HandoverBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerL),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
             ) {
                 if (isStarting) {
@@ -442,7 +459,7 @@ private fun HandoverBottomBar(
                     )
                 } else {
                     Text(
-                        text = "Yolculuğu Başlat",
+                        text = stringResource(R.string.handover_start_trip_button),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -457,10 +474,10 @@ private fun HandoverBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimens.CornerL),
             ) {
                 Text(
-                    text = "Yolculuğu İptal Et",
+                    text = stringResource(R.string.handover_cancel_trip_button),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Danger,

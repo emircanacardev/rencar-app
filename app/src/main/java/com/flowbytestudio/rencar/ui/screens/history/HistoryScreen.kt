@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,11 +46,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.Danger
 import com.flowbytestudio.rencar.ui.theme.DangerLight
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
 import com.flowbytestudio.rencar.ui.theme.Success
@@ -94,24 +97,29 @@ private fun HistoryContent(
             .fillMaxSize()
             .background(Background),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)) {
+        Column(modifier = Modifier.padding(horizontal = Dimens.SpaceL, vertical = Dimens.SpaceL)) {
             Text(
-                text = "Kiralamalarım",
+                text = stringResource(R.string.history_title),
                 fontSize = 25.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
             )
             if (uiState.rentals.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(3.dp))
-                if (uiState.statsErrorMessage != null) {
+                val statsErrorMessage = uiState.statsErrorMessage
+                if (statsErrorMessage != null) {
                     Text(
-                        text = uiState.statsErrorMessage,
+                        text = stringResource(statsErrorMessage),
                         fontSize = 14.5.sp,
                         color = Danger,
                     )
                 } else {
                     Text(
-                        text = "Bu ay ${uiState.tripCountThisMonth} yolculuk · ₺${formatTl(uiState.totalSpentThisMonth)} harcama",
+                        text = stringResource(
+                            R.string.history_monthly_summary,
+                            uiState.tripCountThisMonth,
+                            formatTl(uiState.totalSpentThisMonth),
+                        ),
                         fontSize = 14.5.sp,
                         color = TextSecondary,
                     )
@@ -127,17 +135,18 @@ private fun HistoryContent(
             }
             uiState.rentals.isEmpty() -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    val errorMessage = uiState.errorMessage
                     Text(
-                        text = uiState.errorMessage ?: "Henüz bir kiralaman yok",
+                        text = errorMessage?.let { stringResource(it) } ?: stringResource(R.string.history_empty_state),
                         fontSize = 16.5.sp,
-                        color = if (uiState.errorMessage != null) Danger else TextSecondary,
+                        color = if (errorMessage != null) Danger else TextSecondary,
                     )
                 }
             }
             else -> {
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(horizontal = Dimens.SpaceL, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(Dimens.SpaceS),
                 ) {
                     items(uiState.rentals, key = { it.id }) { rental ->
                         RentalCard(
@@ -221,8 +230,8 @@ private fun RentalCard(rental: RentalUiModel, onClick: (() -> Unit)? = null) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         PlanChip(text = rental.planLabel)
-                        InfoChip(text = "${rental.durationMinutes} dk")
-                        InfoChip(text = "${"%.1f".format(rental.distanceKm)} km")
+                        InfoChip(text = stringResource(R.string.common_minutes_short, rental.durationMinutes))
+                        InfoChip(text = stringResource(R.string.common_distance_km, "%.1f".format(rental.distanceKm)))
                     }
                 }
             }
@@ -280,7 +289,7 @@ private fun UnpaidBadge() {
             .padding(horizontal = 8.dp, vertical = 3.dp),
     ) {
         Text(
-            text = "Ödenmedi",
+            text = stringResource(R.string.history_unpaid_badge),
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = Danger,
@@ -311,13 +320,13 @@ private fun StatusDot(status: RentalStatus, modifier: Modifier = Modifier) {
         when (status) {
             RentalStatus.COMPLETED -> Icon(
                 imageVector = Icons.Filled.Check,
-                contentDescription = "Tamamlandı",
+                contentDescription = stringResource(R.string.history_status_completed),
                 tint = Color.White,
                 modifier = Modifier.size(11.dp),
             )
             RentalStatus.CANCELLED -> Icon(
                 imageVector = Icons.Filled.Close,
-                contentDescription = "İptal edildi",
+                contentDescription = stringResource(R.string.history_status_cancelled),
                 tint = Color.White,
                 modifier = Modifier.size(11.dp),
             )

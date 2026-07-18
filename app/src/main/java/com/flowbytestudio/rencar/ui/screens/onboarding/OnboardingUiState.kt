@@ -1,5 +1,8 @@
 package com.flowbytestudio.rencar.ui.screens.onboarding
 
+import androidx.annotation.StringRes
+import com.flowbytestudio.rencar.R
+
 enum class OnboardingIllustration {
     MAP_PIN_WITH_CAR,
     PHONE_VERIFICATION,
@@ -8,25 +11,25 @@ enum class OnboardingIllustration {
 
 data class OnboardingPage(
     val illustration: OnboardingIllustration,
-    val title: String,
-    val description: String,
+    @StringRes val title: Int,
+    @StringRes val description: Int,
 )
 
 val OnboardingPages = listOf(
     OnboardingPage(
         illustration = OnboardingIllustration.MAP_PIN_WITH_CAR,
-        title = "Yakındaki aracı keşfet",
-        description = "İhtiyacın olan araç birkaç dokunuş uzağında.",
+        title = R.string.onboarding_page1_title,
+        description = R.string.onboarding_page1_description,
     ),
     OnboardingPage(
         illustration = OnboardingIllustration.PHONE_VERIFICATION,
-        title = "Dakikalar içinde kirala",
-        description = "Ehliyetini doğrula, rezervasyonunu oluştur ve hemen yola çık.",
+        title = R.string.onboarding_page2_title,
+        description = R.string.onboarding_page2_description,
     ),
     OnboardingPage(
         illustration = OnboardingIllustration.MOVING_CAR,
-        title = "Özgürce sür",
-        description = "İstediğin zaman teslim et. Araç sahibi olmadan ulaşımın keyfini çıkar.",
+        title = R.string.onboarding_page3_title,
+        description = R.string.onboarding_page3_description,
     ),
 )
 

@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,12 +58,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.license.LicenseStatus
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BorderLight
 import com.flowbytestudio.rencar.ui.theme.Danger
 import com.flowbytestudio.rencar.ui.theme.DangerLight
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.PrimaryLight
 import com.flowbytestudio.rencar.ui.theme.Success
@@ -147,19 +150,19 @@ private fun ProfileContent(
         MenuCard {
             MenuItem(
                 icon = Icons.Outlined.CreditCard,
-                label = "Ödeme yöntemleri",
+                label = stringResource(R.string.profile_menu_payment_methods),
                 onClick = onPaymentMethodsClick,
             )
             MenuDivider()
             MenuItem(
                 icon = Icons.Outlined.Settings,
-                label = "Ayarlar",
+                label = stringResource(R.string.common_settings),
                 onClick = onSettingsClick,
             )
             MenuDivider()
             MenuItem(
                 icon = Icons.AutoMirrored.Outlined.HelpOutline,
-                label = "Yardım & destek",
+                label = stringResource(R.string.profile_menu_help_support),
                 onClick = onSupportClick,
             )
         }
@@ -236,7 +239,7 @@ private fun UserHeaderCard(
         ) {
             Icon(
                 imageVector = Icons.Outlined.Edit,
-                contentDescription = "Düzenle",
+                contentDescription = stringResource(R.string.profile_edit_button_content_description),
                 tint = TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
@@ -275,21 +278,21 @@ private fun StatsCard(stats: ProfileStats) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Bu ay ${stats.tripCount} yolculuk",
+                    text = stringResource(R.string.profile_stats_trips_this_month, stats.tripCount),
                     fontSize = 16.5.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                 )
                 Text(
-                    text = "₺${formatTl(stats.totalSpent)} harcama",
+                    text = stringResource(R.string.profile_stats_total_spent, formatTl(stats.totalSpent)),
                     fontSize = 14.5.sp,
                     color = TextSecondary,
                 )
                 if (stats.totalMinutes > 0 || stats.totalKm > 0.0) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        StatChip(text = "${stats.totalMinutes} dk")
-                        StatChip(text = "${"%.1f".format(stats.totalKm)} km")
+                    Spacer(modifier = Modifier.height(Dimens.SpaceXs))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceXs)) {
+                        StatChip(text = stringResource(R.string.common_minutes_short, stats.totalMinutes))
+                        StatChip(text = stringResource(R.string.common_distance_km, "%.1f".format(stats.totalKm)))
                     }
                 }
             }
@@ -331,9 +334,9 @@ private fun LicenseSection(
             icon = Icons.Outlined.HourglassEmpty,
             iconTint = WarningAmber,
             iconBg = WarningAmberLight,
-            title = "Ehliyet incelemede",
-            subtitle = "Onay bekleniyor",
-            badgeText = "İncelemede",
+            title = stringResource(R.string.profile_license_under_review_title),
+            subtitle = stringResource(R.string.profile_license_under_review_subtitle),
+            badgeText = stringResource(R.string.profile_license_under_review_badge),
             badgeColor = WarningAmber,
             badgeBg = WarningAmberLight,
         )
@@ -341,9 +344,9 @@ private fun LicenseSection(
             icon = Icons.Outlined.WarningAmber,
             iconTint = Danger,
             iconBg = DangerLight,
-            title = "Ehliyet reddedildi",
-            subtitle = uiState.rejectReason ?: "Belgelerini tekrar yükle",
-            badgeText = "Tekrar yükle",
+            title = stringResource(R.string.profile_license_rejected_title),
+            subtitle = uiState.rejectReason ?: stringResource(R.string.profile_license_rejected_subtitle_fallback),
+            badgeText = stringResource(R.string.profile_license_rejected_badge_reupload),
             badgeColor = Primary,
             badgeBg = PrimaryLight,
             onClick = onLicenseActionClick,
@@ -352,9 +355,9 @@ private fun LicenseSection(
             icon = Icons.Outlined.Shield,
             iconTint = Primary,
             iconBg = PrimaryLight,
-            title = "Ehliyetini doğrula",
-            subtitle = "Araç kiralamak için ehliyet gerekli",
-            badgeText = "Doğrula",
+            title = stringResource(R.string.profile_license_not_submitted_title),
+            subtitle = stringResource(R.string.profile_license_not_submitted_subtitle),
+            badgeText = stringResource(R.string.profile_license_not_submitted_badge_verify),
             badgeColor = Primary,
             badgeBg = PrimaryLight,
             onClick = onLicenseActionClick,
@@ -367,7 +370,7 @@ private fun LicenseSection(
 
 @Composable
 private fun ApprovedLicenseCard(
-    licenseClass: String,
+    @androidx.annotation.StringRes licenseClass: Int,
     showRefresh: Boolean,
     isRefreshing: Boolean,
     onRefreshSessionClick: () -> Unit,
@@ -402,13 +405,13 @@ private fun ApprovedLicenseCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Ehliyet doğrulandı",
+                        text = stringResource(R.string.profile_license_approved_title),
                         fontSize = 16.5.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary,
                     )
                     Text(
-                        text = licenseClass,
+                        text = stringResource(licenseClass),
                         fontSize = 14.5.sp,
                         color = TextSecondary,
                     )
@@ -421,7 +424,7 @@ private fun ApprovedLicenseCard(
                         .padding(horizontal = 10.dp, vertical = 5.dp),
                 ) {
                     Text(
-                        text = "Onaylı",
+                        text = stringResource(R.string.profile_license_approved_badge),
                         fontSize = 14.5.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Success,
@@ -454,7 +457,7 @@ private fun ApprovedLicenseCard(
                         )
                     }
                     Text(
-                        text = "Oturumu yenile",
+                        text = stringResource(R.string.profile_refresh_session_button),
                         fontSize = 14.5.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary,
@@ -577,13 +580,13 @@ private fun ReferralCard(onClick: () -> Unit) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Davet et · ₺50 kazan",
+                    text = stringResource(R.string.profile_referral_title),
                     fontSize = 16.5.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                 )
                 Text(
-                    text = "Davet ettiğin arkadaş ilk yolculuğunu tamamlayınca ₺50 senin.",
+                    text = stringResource(R.string.profile_referral_subtitle),
                     fontSize = 13.5.sp,
                     color = TextSecondary,
                 )
@@ -680,7 +683,7 @@ private fun LogoutCard(onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Çıkış yap",
+                text = stringResource(R.string.profile_logout_button),
                 fontSize = 16.5.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Danger,

@@ -1,6 +1,7 @@
 package com.flowbytestudio.rencar.ui.screens.license
 
 import android.net.Uri
+import androidx.annotation.StringRes
 
 enum class LicenseUploadStep { LICENSE, SELFIE, CONFIRM }
 
@@ -12,7 +13,7 @@ data class LicenseUploadUiState(
     val selfieUrl: String? = null,
     val isSubmitting: Boolean = false,
     val isSubmitted: Boolean = false,
-    val error: String? = null,
+    @StringRes val error: Int? = null,
 ) {
     val hasSelfie: Boolean get() = selfieUri != null || selfieUrl != null
 }

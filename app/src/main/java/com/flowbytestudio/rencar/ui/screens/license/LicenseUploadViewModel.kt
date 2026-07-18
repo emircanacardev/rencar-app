@@ -5,15 +5,16 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.auth.AuthSession
 import com.flowbytestudio.rencar.data.license.LicenseRepository
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import java.io.IOException
 
 class LicenseUploadViewModel(
     private val repository: LicenseRepository = LicenseRepository(),
@@ -43,7 +44,7 @@ class LicenseUploadViewModel(
     fun onNextFromLicenseStep() {
         val state = _uiState.value
         if (state.frontUri == null || state.backUri == null) {
-            _uiState.update { it.copy(error = "Lütfen ön ve arka yüz fotoğraflarını seçin.") }
+            _uiState.update { it.copy(error = R.string.license_error_select_front_back) }
             return
         }
         _uiState.update { it.copy(step = LicenseUploadStep.SELFIE, error = null) }
@@ -52,7 +53,7 @@ class LicenseUploadViewModel(
     fun onNextFromSelfieStep() {
         val state = _uiState.value
         if (!state.hasSelfie) {
-            _uiState.update { it.copy(error = "Lütfen bir selfie çek veya yükle.") }
+            _uiState.update { it.copy(error = R.string.license_error_select_selfie) }
             return
         }
         _uiState.update { it.copy(step = LicenseUploadStep.CONFIRM, error = null) }
@@ -76,11 +77,11 @@ class LicenseUploadViewModel(
         val back = state.backUri
         val selfie = state.selfieUri
         if (front == null || back == null) {
-            _uiState.update { it.copy(error = "Lütfen ön ve arka yüz fotoğraflarını seçin.") }
+            _uiState.update { it.copy(error = R.string.license_error_select_front_back) }
             return
         }
         if (selfie == null) {
-            _uiState.update { it.copy(error = "Lütfen bir selfie çek veya yükle.") }
+            _uiState.update { it.copy(error = R.string.license_error_select_selfie) }
             return
         }
 
@@ -96,18 +97,19 @@ class LicenseUploadViewModel(
                         val statusCode = (throwable as? HttpException)?.code()
                         Log.e(TAG, "Upload Failure: status=$statusCode", throwable)
 
-                        val errorMessage = when {
-                            throwable is IOException -> "Bağlantı hatası oluştu."
-                            statusCode == 409 -> "Ehliyetiniz zaten onaylı veya incelemede."
-                            statusCode == 413 -> "Dosya boyutu çok büyük (maksimum 5MB)."
-                            statusCode == 400 -> "Dosya tipi geçersiz. Lütfen jpg/png seçin."
-                            else -> "Yükleme başarısız oldu. Lütfen tekrar deneyin."
-                        }
+                        val errorMessage = throwable.toErrorRes(
+                            fallback = R.string.license_error_upload_failed,
+                            overrides = mapOf(
+                                409 to R.string.license_error_already_submitted,
+                                413 to R.string.license_error_file_too_large,
+                                400 to R.string.license_error_invalid_file_type,
+                            ),
+                        )
                         _uiState.update { it.copy(isSubmitting = false, error = errorMessage) }
                     }
             } catch (e: Exception) {
                 Log.e(TAG, "Upload Exception", e)
-                _uiState.update { it.copy(isSubmitting = false, error = "Bağlantı hatası oluştu.") }
+                _uiState.update { it.copy(isSubmitting = false, error = R.string.common_error_connection) }
             } finally {
                 _uiState.update { it.copy(isSubmitting = false) }
             }

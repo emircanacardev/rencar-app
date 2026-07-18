@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,11 +45,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.ui.common.MapStyles
 import com.flowbytestudio.rencar.ui.common.formatTl
 import com.flowbytestudio.rencar.ui.theme.Background
 import com.flowbytestudio.rencar.ui.theme.BgLight
 import com.flowbytestudio.rencar.ui.theme.Danger
+import com.flowbytestudio.rencar.ui.theme.Dimens
 import com.flowbytestudio.rencar.ui.theme.Primary
 import com.flowbytestudio.rencar.ui.theme.Success
 import com.flowbytestudio.rencar.ui.theme.Surface
@@ -185,7 +188,7 @@ fun ActiveRentalScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(top = 12.dp),
+                .padding(top = Dimens.SpaceS),
         )
 
         if (uiState.isLoading) {
@@ -211,7 +214,7 @@ private fun ActiveRentalPill(
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .background(TextPrimary)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(horizontal = Dimens.SpaceS, vertical = Dimens.SpaceXs),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -220,9 +223,13 @@ private fun ActiveRentalPill(
                     .clip(CircleShape)
                     .background(Success),
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(Dimens.SpaceXs))
             Text(
-                text = if (vehicleName != null) "Kiralama aktif · $vehicleName" else "Kiralama aktif",
+                text = if (vehicleName != null) {
+                    stringResource(R.string.active_rental_pill_active_with_vehicle, vehicleName)
+                } else {
+                    stringResource(R.string.common_rental_active)
+                },
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Background,
@@ -240,13 +247,13 @@ private fun ActiveRentalCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp),
-        shape = RoundedCornerShape(24.dp),
+            .padding(Dimens.SpaceS),
+        shape = RoundedCornerShape(Dimens.SpaceXl),
         color = Surface,
         shadowElevation = 16.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            modifier = Modifier.padding(horizontal = Dimens.SpaceL, vertical = Dimens.SpaceM),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
@@ -257,23 +264,22 @@ private fun ActiveRentalCard(
                     .background(BgLight),
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceS))
 
             if (uiState.isPreparing) {
                 // PREPARING: süre işlemiyor; foto akışı tamamlanıp start çağrılmalı.
                 Text(
-                    text = "Yolculuk henüz başlamadı. Araç fotoğraflarını tamamlayıp başlat; " +
-                        "süre başlayınca burada işleyecek.",
+                    text = stringResource(R.string.active_rental_preparing_notice),
                     fontSize = 13.sp,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(Dimens.SpaceS))
             }
 
-            Text(text = "Geçen süre", fontSize = 13.sp, color = TextSecondary)
+            Text(text = stringResource(R.string.active_rental_elapsed_time_label), fontSize = 13.sp, color = TextSecondary)
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceXxs))
 
             Text(
                 text = formatElapsed(uiState.elapsedSeconds),
@@ -282,18 +288,18 @@ private fun ActiveRentalCard(
                 color = TextPrimary,
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceS))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpaceS)) {
                 StatTile(
-                    label = "Anlık ücret",
+                    label = stringResource(R.string.active_rental_current_cost_label),
                     value = uiState.currentCost?.let { "₺${formatTl(it)}" } ?: "—",
                     valueColor = Primary,
                     modifier = Modifier.weight(1f),
                 )
                 // GET /rentals/active — sunucunun biriktirdiği mesafe (km).
                 StatTile(
-                    label = "Mesafe",
+                    label = stringResource(R.string.common_distance_label),
                     value = uiState.distanceKm?.let { formatKm(it) } ?: "—",
                     valueColor = TextPrimary,
                     modifier = Modifier.weight(1f),
@@ -302,25 +308,25 @@ private fun ActiveRentalCard(
 
             val fatalError = uiState.endError ?: uiState.loadError
             if (fatalError != null) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(text = fatalError, color = Danger, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(Dimens.SpaceXs))
+                Text(text = stringResource(fatalError), color = Danger, fontSize = 13.sp)
             }
 
             // Yoklama sırasında oluşan geçici (ölümcül olmayan) bağlantı hatası; ince göster.
             if (uiState.pollError != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = uiState.pollError, color = TextSecondary, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(Dimens.SpaceXxs))
+                Text(text = stringResource(uiState.pollError), color = TextSecondary, fontSize = 12.sp)
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(Dimens.SpaceS))
 
             Button(
                 onClick = onEnd,
                 enabled = !uiState.isEnding,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(14.dp),
+                    .height(Dimens.ControlHeight),
+                shape = RoundedCornerShape(Dimens.CornerL),
                 colors = ButtonDefaults.buttonColors(containerColor = Danger),
             ) {
                 if (uiState.isEnding) {
@@ -330,7 +336,7 @@ private fun ActiveRentalCard(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text(text = "Kiralamayı Bitir", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(text = stringResource(R.string.active_rental_end_button), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

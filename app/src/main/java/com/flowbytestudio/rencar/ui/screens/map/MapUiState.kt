@@ -1,5 +1,6 @@
 package com.flowbytestudio.rencar.ui.screens.map
 
+import androidx.annotation.StringRes
 import com.flowbytestudio.rencar.data.geocoding.GeocodingResult
 import com.flowbytestudio.rencar.data.rentals.RentalDto
 import com.flowbytestudio.rencar.data.reservations.ReservationResponse
@@ -10,7 +11,7 @@ import com.flowbytestudio.rencar.data.vehicles.vehicleStatus
 data class MapUiState(
     val isLoading: Boolean = true,
     val vehicles: List<VehicleDto> = emptyList(),
-    val error: String? = null,
+    @StringRes val error: Int? = null,
     // Sunucu tarafı fiyat segmenti filtresi (?segment) — Tümü(null)/Ekonomik/Konfor/SUV.
     val selectedSegment: String? = null,
     // İstemci tarafı karoseri tipi filtresi; segmentin üstünde çalışır.

@@ -2,11 +2,13 @@ package com.flowbytestudio.rencar.ui.screens.handover
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.rentals.RentalPhotosState
 import com.flowbytestudio.rencar.data.rentals.RentalRepository
 import com.flowbytestudio.rencar.data.rentals.RentalStatus
 import com.flowbytestudio.rencar.data.rentals.rentalStatus
 import com.flowbytestudio.rencar.ui.common.ImageFiles
+import com.flowbytestudio.rencar.ui.common.toErrorRes
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +38,7 @@ class HandoverViewModel(
                 _uiState.update { s ->
                     s.copy(
                         isLoading = false,
-                        loadError = "Yolculuk bilgileri yüklenemedi. Lütfen tekrar dene.",
+                        loadError = R.string.handover_load_error,
                     )
                 }
                 return@launch
@@ -82,7 +84,7 @@ class HandoverViewModel(
     fun startRental() {
         if (!_uiState.value.canStart) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isStarting = true, startError = null) }
+            _uiState.update { it.copy(isStarting = true, startError = null, startErrorArg = null) }
             rentalRepository.startRental(rentalId)
                 .onSuccess {
                     _uiState.update { it.copy(isStarting = false, startedRentalId = rentalId) }
@@ -96,17 +98,26 @@ class HandoverViewModel(
     private suspend fun handleStartFailure(throwable: Throwable) {
         if (throwable is HttpException && throwable.code() == 409) {
             val photos = rentalRepository.getPhotos(rentalId).getOrNull()
-            val message = if (photos != null && !photos.photosComplete) {
-                "${photos.remainingSides.size} foto kaldı. Tüm yönleri çekmelisin."
-            } else {
-                "Yolculuk başlatılamadı. Zaten başlamış ya da bitmiş olabilir."
-            }
             _uiState.update {
-                it.withPhotos(photos).copy(isStarting = false, startError = message)
+                if (photos != null && !photos.photosComplete) {
+                    it.withPhotos(photos).copy(
+                        isStarting = false,
+                        startError = R.string.handover_photos_remaining_error,
+                        startErrorArg = photos.remainingSides.size,
+                    )
+                } else {
+                    it.withPhotos(photos).copy(
+                        isStarting = false,
+                        startError = R.string.handover_start_conflict_error,
+                        startErrorArg = null,
+                    )
+                }
             }
             return
         }
-        _uiState.update { it.copy(isStarting = false, startError = throwable.toStartErrorMessage()) }
+        _uiState.update {
+            it.copy(isStarting = false, startError = throwable.toStartErrorMessage(), startErrorArg = null)
+        }
     }
 
     fun onCancelClicked() {
@@ -154,24 +165,30 @@ private fun HandoverUiState.withPhotos(state: RentalPhotosState?): HandoverUiSta
     )
 }
 
-private fun Throwable.toUploadErrorMessage(): String = when {
-    this is HttpException && code() == 413 -> "Dosya çok büyük (maks. 5MB)"
-    this is HttpException && code() == 400 -> "Geçersiz dosya"
-    this is HttpException && code() == 409 -> "Yolculuk hazırlık aşamasında değil"
-    this is HttpException && code() == 404 -> "Yolculuk bulunamadı."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Fotoğraf yüklenemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toUploadErrorMessage(): Int = toErrorRes(
+    fallback = R.string.handover_upload_error_generic,
+    overrides = mapOf(
+        413 to R.string.handover_upload_error_file_too_large,
+        400 to R.string.handover_upload_error_invalid_file,
+        409 to R.string.handover_upload_error_not_preparing,
+        404 to R.string.handover_error_rental_not_found,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
-private fun Throwable.toStartErrorMessage(): String = when {
-    this is HttpException && code() == 404 -> "Yolculuk bulunamadı."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Yolculuk başlatılamadı. Lütfen tekrar dene."
-}
+private fun Throwable.toStartErrorMessage(): Int = toErrorRes(
+    fallback = R.string.handover_start_error_generic,
+    overrides = mapOf(
+        404 to R.string.handover_error_rental_not_found,
+        401 to R.string.common_error_session_expired,
+    ),
+)
 
-private fun Throwable.toCancelErrorMessage(): String = when {
-    this is HttpException && code() == 409 -> "Yolculuk hazırlık aşamasında değil, iptal edilemez."
-    this is HttpException && code() == 404 -> "Yolculuk bulunamadı."
-    this is HttpException && code() == 401 -> "Oturumun sona ermiş. Lütfen tekrar giriş yap."
-    else -> "Yolculuk iptal edilemedi. Lütfen tekrar dene."
-}
+private fun Throwable.toCancelErrorMessage(): Int = toErrorRes(
+    fallback = R.string.handover_cancel_error_generic,
+    overrides = mapOf(
+        409 to R.string.handover_cancel_error_not_preparing,
+        404 to R.string.handover_error_rental_not_found,
+        401 to R.string.common_error_session_expired,
+    ),
+)

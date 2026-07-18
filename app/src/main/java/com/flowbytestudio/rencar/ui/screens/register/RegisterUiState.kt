@@ -1,5 +1,7 @@
 package com.flowbytestudio.rencar.ui.screens.register
 
+import androidx.annotation.StringRes
+
 data class RegisterUiState(
     val fullName: String = "",
     val email: String = "",
@@ -7,6 +9,7 @@ data class RegisterUiState(
     val phone: String = "",
     val referralCode: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null,
+    @StringRes val error: Int? = null,
+    val errorText: String? = null,
     val isRegistered: Boolean = false,
 )

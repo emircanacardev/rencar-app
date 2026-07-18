@@ -1,5 +1,7 @@
 package com.flowbytestudio.rencar.ui.screens.profile
 
+import androidx.annotation.StringRes
+import com.flowbytestudio.rencar.R
 import com.flowbytestudio.rencar.data.auth.UserRole
 import com.flowbytestudio.rencar.data.license.LicenseStatus
 
@@ -14,7 +16,7 @@ data class ProfileUiState(
     // "ehliyetini doğrula" gösterilmez; durum kartı bilinene kadar gizli kalır.
     val licenseStatus: LicenseStatus = LicenseStatus.UNKNOWN,
     val rejectReason: String? = null,
-    val licenseClass: String = "B sınıfı · geçerli",
+    @StringRes val licenseClass: Int = R.string.profile_license_class_default,
     // Bu ayki yolculuk özeti (CUSTOMER olmayan kullanıcıda null kalır).
     val stats: ProfileStats? = null,
     val isRefreshingSession: Boolean = false,
