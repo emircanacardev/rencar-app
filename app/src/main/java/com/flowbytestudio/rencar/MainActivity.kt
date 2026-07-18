@@ -18,6 +18,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.flowbytestudio.rencar.data.auth.AuthSession
+import com.flowbytestudio.rencar.data.auth.SessionManager
+import com.flowbytestudio.rencar.data.auth.SessionState
 import com.flowbytestudio.rencar.data.settings.OnboardingPreferences
 import com.flowbytestudio.rencar.data.settings.ThemeController
 import com.flowbytestudio.rencar.navigation.ActiveRentalRoute
@@ -38,11 +40,17 @@ import com.flowbytestudio.rencar.ui.theme.RencarTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         ThemeController.init(applicationContext)
         OnboardingPreferences.init(applicationContext)
+        SessionManager.init(applicationContext)
+        // Kayıtlı oturum doğrulanana kadar splash ekranda kalır; sonuç LOGGED_IN
+        // ise login hiç görünmeden ana ekrana geçilir.
+        splashScreen.setKeepOnScreenCondition {
+            AuthSession.sessionState.value == SessionState.UNKNOWN
+        }
         setContent {
             RencarTheme {
                 RencarApp()
@@ -53,9 +61,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun RencarApp() {
-    val isLoggedIn by AuthSession.isLoggedIn.collectAsState()
+    val sessionState by AuthSession.sessionState.collectAsState()
 
-    if (!isLoggedIn) {
+    // Splash setKeepOnScreenCondition ile ekranda; karar gelene kadar bir şey çizilmez.
+    if (sessionState == SessionState.UNKNOWN) return
+
+    if (sessionState == SessionState.LOGGED_OUT) {
         val hasSeenOnboarding by OnboardingPreferences.hasSeenOnboarding.collectAsState()
         val showOnboarding = BuildConfig.ALWAYS_SHOW_ONBOARDING || !hasSeenOnboarding
 

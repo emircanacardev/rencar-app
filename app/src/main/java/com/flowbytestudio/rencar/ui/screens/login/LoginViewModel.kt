@@ -33,6 +33,11 @@ class LoginViewModel(
         val digitsOnly = code.filter { it.isDigit() }
         if (digitsOnly.length <= 6) {
             _uiState.update { it.copy(code = digitsOnly, error = null) }
+            // 6. hane girilir girilmez otomatik doğrula; buton yine de duruyor.
+            // Hatalı kodda kullanıcı düzeltince (uzunluk tekrar 6 olunca) yeniden tetiklenir.
+            if (digitsOnly.length == 6 && !_uiState.value.isLoading) {
+                onVerifyOtp()
+            }
         }
     }
 

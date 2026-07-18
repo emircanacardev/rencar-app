@@ -39,12 +39,9 @@ class AuthRepository(
 
     // Ehliyet onayı sonrası yeniden giriş yapmadan CUSTOMER token'ı almak için;
     // ayrıca canlı konum soketi süresi dolan token'ı bununla tazeler.
-    suspend fun refreshSession(): Result<AuthResponse> = runCatching {
-        val token = requireNotNull(AuthSession.refreshToken) { "Oturum bulunamadı" }
-        api.refresh(RefreshTokenRequest(refreshToken = token))
-    }.onSuccess { response ->
-        AuthSession.onAuthenticated(response)
-    }
+    // Rotasyon + reuse detection nedeniyle tüm refresh'ler SessionManager'daki
+    // tek mutex üzerinden akar.
+    suspend fun refreshSession(): Result<AuthResponse> = SessionManager.refresh()
 
     // referralCode /auth/me çağrısında üretildiği için profil/davet ekranı bu ucu kullanır.
     suspend fun me(): Result<UserResponse> = runCatching {
