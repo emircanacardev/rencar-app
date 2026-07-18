@@ -115,7 +115,9 @@ Kayıtlı bir oturum varsa splash ekranı arka planda token'ı doğrulayıp kull
 
 | Ekran | Koyu Tema | Açık Tema |
 |---|---|---|
-| Onboarding | <img src="docs/screenshots/onboarding.png" width="220"> | <img src="docs/screenshots/onboarding_light.png" width="220"> |
+| Onboarding — Sayfa 1 | <img src="docs/screenshots/onboarding_1.png" width="220"> | <img src="docs/screenshots/onboarding_1_light.png" width="220"> |
+| Onboarding — Sayfa 2 | <img src="docs/screenshots/onboarding_2.png" width="220"> | <img src="docs/screenshots/onboarding_2_light.png" width="220"> |
+| Onboarding — Sayfa 3 | <img src="docs/screenshots/onboarding_3.png" width="220"> | <img src="docs/screenshots/onboarding_3_light.png" width="220"> |
 | Giriş / OTP | <img src="docs/screenshots/login.png" width="220"> | <img src="docs/screenshots/login_light.png" width="220"> |
 | Kayıt | <img src="docs/screenshots/register.png" width="220"> | <img src="docs/screenshots/register_light.png" width="220"> |
 

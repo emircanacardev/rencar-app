@@ -115,7 +115,9 @@ For ease of review and testing, features are split into 6 sections that follow t
 
 | Screen | Dark Theme | Light Theme |
 |---|---|---|
-| Onboarding | <img src="docs/screenshots/onboarding.png" width="220"> | <img src="docs/screenshots/onboarding_light.png" width="220"> |
+| Onboarding — Page 1 | <img src="docs/screenshots/onboarding_1.png" width="220"> | <img src="docs/screenshots/onboarding_1_light.png" width="220"> |
+| Onboarding — Page 2 | <img src="docs/screenshots/onboarding_2.png" width="220"> | <img src="docs/screenshots/onboarding_2_light.png" width="220"> |
+| Onboarding — Page 3 | <img src="docs/screenshots/onboarding_3.png" width="220"> | <img src="docs/screenshots/onboarding_3_light.png" width="220"> |
 | Login / OTP | <img src="docs/screenshots/login.png" width="220"> | <img src="docs/screenshots/login_light.png" width="220"> |
 | Register | <img src="docs/screenshots/register.png" width="220"> | <img src="docs/screenshots/register_light.png" width="220"> |
 
